@@ -1,0 +1,247 @@
+================================================================================
+  SISTEMA DE ÓRDENES DE TRABAJO — TALLER MECÁNICO
+  Documentación técnica, funcionamiento y despliegue (Maven / Jakarta EE)
+================================================================================
+
+1. QUÉ ES Y QUÉ HACE
+--------------------
+Aplicación web para gestionar un taller mecánico:
+
+  • Autenticación por correo/contraseña con roles administrador (admin) o técnico (tecnico).
+  • Filtro servlet (AuthFilter) que impide abrir cualquier vista bajo /views/* sin sesión iniciada.
+  • Dashboard con totales de órdenes y distribución por estado (Pendiente, En proceso, Finalizado).
+  • CRUD de: usuarios, técnicos, clientes, vehículos, órdenes de trabajo, reparaciones y repuestos.
+  • Órdenes (admin): búsqueda por placa, filtro por estado y técnico, asignación de técnico y líneas de repuestos.
+  • Técnico: ve solo sus órdenes en «Mis órdenes»; puede actualizar estado/descripción y las reparaciones de esas órdenes.
+  • Reparaciones: listado global (admin) o filtrado por órdenes del técnico; altas/edición con validación de permisos.
+
+La base de datos es Microsoft Access (.accdb); el proyecto NO crea tablas: solo se conecta y ejecuta SQL.
+
+
+2. CÓMO FUNCIONA EL SISTEMA (VISIÓN GLOBAL)
+-------------------------------------------
+Arranque:
+  1) Tomcat carga el WAR y el listener Weld (CDI).
+  2) TallerContextListener lee taller.accdb.path en web.xml y valida la ruta al .accdb.
+  3) El usuario abre /views/login.xhtml (única entrada sin sesión).
+
+Sesión y seguridad:
+  • AuthFilter intercepta todas las peticiones a /views/* excepto login.xhtml.
+  • Sin atributo de sesión «usuario», redirige al login.
+  • LoginBean valida correo/contraseña vía UsuarioDAO; solo acepta roles admin y tecnico con estado Activo.
+  • Tras login: admin va al dashboard; técnico va a «Mis órdenes».
+
+Navegación:
+  • template.xhtml define el layout (barra lateral + contenido) y ejecuta verificarSesion en cada vista protegida.
+  • menu.xhtml muestra enlaces según rol (admin ve catálogo completo y «Órdenes (todas)»; técnico ve «Mis órdenes»).
+  • Las páginas solo-admin usan f:viewAction con loginBean.exigirAdmin para redirigir a un técnico que escriba la URL a mano.
+
+Capas:
+  Vista (.xhtml + PrimeFaces + Bootstrap) → Bean (@Named, CDI) → DAO (JDBC) → Access (UCanAccess).
+
+
+3. ARQUITECTURA MVC
+-------------------
+  Vista (XHTML + PrimeFaces + Bootstrap)  →  Controlador (beans CDI)  →  DAO (JDBC)  →  Access
+
+  • Vistas:     src/main/webapp/views/*.xhtml, template.xhtml, menu.xhtml
+  • Control:    com.taller.mecanico.controller (beans @Named)
+  • Modelo:     com.taller.mecanico.model (POJOs)
+  • Acceso BD:  com.taller.mecanico.dao (PreparedStatement)
+  • Utilidades: com.taller.mecanico.util (conexión, constantes, listener)
+  • Filtro:     com.taller.mecanico.filter.AuthFilter
+
+
+4. PAQUETES JAVA (src/main/java/com/taller/mecanico/)
+-----------------------------------------------------
+  model/
+    Usuario, Tecnico, Cliente, Vehiculo, OrdenTrabajo, Reparacion, Repuesto, OrdenRepuesto
+
+  dao/
+    UsuarioDAO, TecnicoDAO, ClienteDAO, VehiculoDAO, OrdenTrabajoDAO, ReparacionDAO,
+    RepuestoDAO, OrdenRepuestoDAO
+
+  controller/
+    LoginBean       — sesión, roles, redirecciones y comprobaciones de acceso
+    DashboardBean   — métricas del panel (totales globales o por técnico)
+    UsuarioBean, TecnicoBean, ClienteBean, VehiculoBean, OrdenBean, ReparacionBean,
+    RepuestoBean, MisOrdenesBean
+
+  filter/
+    AuthFilter      — exige sesión para /views/* excepto login.xhtml
+
+  util/
+    Conexion.java, EstadosOrden.java, TallerContextListener.java
+
+
+5. DESCRIPCIÓN DE CADA MÓDULO (PANTALLA → LÓGICA → DATOS)
+--------------------------------------------------------
+
+5.1 Inicio de sesión (views/login.xhtml, LoginBean, UsuarioDAO)
+    • Formulario correo + contraseña; validación de formato de correo.
+    • UsuarioDAO.autenticar filtra por estado Activo y roles permitidos.
+    • No muestra datos sin sesión válida.
+
+5.2 Dashboard (views/dashboard.xhtml, DashboardBean, OrdenTrabajoDAO)
+    • Resumen: total de órdenes y cantidades por estado.
+    • Admin: totales de toda la base; técnico: solo órdenes donde id_tecnico coincide con su usuario.
+
+5.3 Usuarios — solo admin (views/usuarios.xhtml, UsuarioBean, UsuarioDAO)
+    • Alta de usuarios administrador: nombre, correo, contraseña, estado Activo/Inactivo.
+      El rol queda fijado como administrador; las cuentas de técnico se crean desde el módulo Técnicos.
+    • Edición: puede cambiar a rol técnico y vincular un id_tecnico (selector con técnicos disponibles).
+      El id_tecnico no se muestra en la tabla; solo se usa en formularios y en base de datos.
+    • Eliminación con confirmación PrimeFaces.
+
+5.4 Técnicos — solo admin (views/tecnicos.xhtml, TecnicoBean, TecnicoDAO, UsuarioDAO)
+    • Campos: nombre, correo (login), especialidad, estado Activo/Inactivo.
+    • Al guardar un técnico nuevo: inserta en tecnicos, obtiene id_tecnico y crea usuario con rol tecnico,
+      mismo correo, contraseña inicial 1234, id_tecnico enlazado.
+    • Al editar: actualiza técnico y sincroniza nombre/correo del usuario vinculado.
+    • Al eliminar: borra primero el usuario asociado y luego el técnico.
+
+5.5 Clientes — solo admin (views/clientes.xhtml, ClienteBean, ClienteDAO)
+    • ABM de clientes: nombre, teléfono, dirección.
+
+5.6 Vehículos — solo admin (views/vehiculos.xhtml, VehiculoBean, VehiculoDAO)
+    • ABM de vehículos: placa, marca, modelo, año, cliente (FK id_cliente).
+
+5.7 Repuestos — solo admin (views/repuestos.xhtml, RepuestoBean, RepuestoDAO)
+    • Catálogo: nombre, precio, stock; usado al agregar líneas en órdenes (descuento de stock en DAO).
+
+5.8 Órdenes de trabajo (todas) — solo admin (views/ordenes.xhtml, OrdenBean, OrdenTrabajoDAO, OrdenRepuestoDAO)
+    • Listado con filtros: placa, estado, técnico.
+    • Alta/edición: fechas, estado, descripción, vehículo, técnico obligatorio.
+    • Diálogo de repuestos por orden: elige repuesto y cantidad; valida stock.
+    • Eliminar orden: solo admin, con confirmación.
+
+5.9 Mis órdenes — solo técnico (views/mis_ordenes.xhtml, MisOrdenesBean)
+    • Lista solo órdenes con id_tecnico = técnico logueado (vía usuarios.id_tecnico).
+    • Puede cambiar estado y descripción de la orden (no reasigna técnico ni vehículo).
+    • Diálogo de reparaciones de esa orden y edición de estado/descripción de cada reparación.
+    • Comprobaciones en servidor: no se puede editar orden o reparación de otro técnico.
+
+5.10 Reparaciones (views/reparaciones.xhtml, ReparacionBean, ReparacionDAO)
+    • Admin: ve todas las reparaciones; puede eliminar.
+    • Técnico: ve solo reparaciones de órdenes asignadas a él; no puede eliminar.
+    • Alta: elige orden (filtrada para técnico); descripción y estado (Pendiente / En proceso / Finalizado).
+
+5.11 Cambiar contraseña (views/cambiar_contrasena.xhtml, CambiarContrasenaBean, UsuarioDAO)
+    • Cualquier usuario con sesión (admin o técnico) puede actualizar solo su propia contraseña.
+    • Pide contraseña actual, nueva y repetición; valida con autenticar y ejecuta UPDATE solo para id_usuario de la sesión.
+
+
+6. INTERFAZ: MENÚ, DIÁLOGOS Y ESTILOS
+-------------------------------------
+  • Bootstrap 5 + Bootstrap Icons + estilos.css (tema taller, tablas, diálogos).
+  • PrimeFaces: tablas, diálogos modales, confirmaciones, growl en formGrowl del template.
+
+  Diálogos y formularios emergentes:
+    • En web.xml está activado primefaces.DIALOG_APPEND_TO_BODY=true: el contenido de los p:dialog se mueve
+      al final del documento HTML, lo que mejora el comportamiento frente a la barra lateral y evita que
+      listas desplegables (p:selectOneMenu) y calendarios queden recortados dentro del formulario.
+    • Clases CSS taller-dialog-sm | md | lg | xl fijan anchos máximos coherentes.
+    • Clase taller-dialog-grid en los p:panelGrid de formularios modales: celdas más compactas y, en móvil,
+      campos apilados.
+    • z-index alto para paneles de select y datepicker sobre el modal.
+    • Diálogos de confirmación de borrado usan la clase taller-pf-confirm (ancho contenido).
+
+  Convención: cada pantalla usa h:form separados para tabla, barra de acciones y diálogos cuando hace falta
+  evitar conflictos de AJAX/PrimeFaces.
+
+
+7. DEPENDENCIAS MAVEN (pom.xml) — PRINCIPALES
+---------------------------------------------
+  • jakarta.servlet:jakarta.servlet-api (provided) — Servlet 6 / Tomcat 10+
+  • org.glassfish:jakarta.faces (Mojarra 4) — JSF / vistas .xhtml
+  • org.primefaces:primefaces (classifier: jakarta) — componentes UI
+  • jakarta.inject + jakarta.enterprise.cdi-api — CDI
+  • org.jboss.weld.servlet:weld-servlet-shaded — CDI en Tomcat
+  • net.sf.ucanaccess:ucanaccess — JDBC para .accdb/.mdb
+
+  Versiones: ver pom.xml.
+
+
+8. CONFIGURACIÓN WEB
+--------------------
+  web.xml (src/main/webapp/WEB-INF/web.xml)
+    • FacesServlet mapeado a *.xhtml
+    • primefaces.THEME = none (estilos propios + Bootstrap)
+    • primefaces.DIALOG_APPEND_TO_BODY = true (diálogos anclados al body del documento)
+    • Filtro AuthFilter en /views/* (REQUEST y FORWARD): sin sesión → login.xhtml
+    • taller.accdb.path — ruta ABSOLUTA al archivo .accdb
+    • Listener Weld: org.jboss.weld.environment.servlet.Listener
+  beans.xml — bean-discovery-mode="all"
+  faces-config.xml — presente (Faces 4)
+
+
+9. CONEXIÓN A ACCESS
+---------------------
+  Clase: com.taller.mecanico.util.Conexion
+  URL JDBC: jdbc:ucanaccess://<ruta normalizada con />
+
+  No se usa ODBC desde Java. UCanAccess incluye dependencias para leer el fichero .accdb.
+
+
+10. ROLES Y REGLAS DE NEGOCIO
+-----------------------------
+  • Rol en usuarios: solo "admin" o "tecnico". Otros valores no pasan el login.
+  • usuarios.id_tecnico: enlace al técnico cuando el usuario es mecánico (se gestiona en BD y formularios;
+    no se lista como columna en la tabla de usuarios).
+  • Estado usuario: Activo permite login; Inactivo no.
+  • Alta técnico: crea fila en tecnicos + usuario automático (correo, rol tecnico, contraseña 1234, id_tecnico).
+  • Técnicos: campo correo (no teléfono) para datos y login.
+  • Órdenes: no se guardan sin técnico; repuestos: no se descuenta por encima del stock.
+
+
+11. CÓMO COMPILAR Y DESPLEGAR
+-----------------------------
+  Requisitos: JDK 17+, Maven, Tomcat 10+ (Jakarta).
+
+  Compilar:
+    mvn clean package
+
+  Artefacto: target/Taller_Mecanico.war
+
+  Tomcat:
+    Copiar el WAR a webapps/, iniciar servidor, abrir:
+    http://localhost:8080/Taller_Mecanico/views/login.xhtml
+
+
+12. DATOS DE PRUEBA Y MIGRACIÓN ACCESS
+--------------------------------------
+  • Tabla usuarios: columna id_tecnico (Long Integer), nullable.
+    Ejemplo: ALTER TABLE usuarios ADD COLUMN id_tecnico LONG;
+  • Tabla tecnicos: columna correo (renombrar telefono o migrar datos).
+  • Usuario admin: correo, contraseña, rol admin, estado Activo, id_tecnico vacío.
+  • Usuario técnico: preferible crear desde módulo Técnicos.
+  • Estados orden/reparación: "Pendiente", "En proceso", "Finalizado".
+
+
+13. ESTRUCTURA DE CARPETAS WEB
+------------------------------
+  webapp/
+    template.xhtml, menu.xhtml
+    views/           — pantallas
+    resources/css/   — estilos propios (estilos.css)
+    WEB-INF/web.xml, beans.xml, faces-config.xml
+
+
+14. URLS DE VISTAS (relativas al contexto)
+------------------------------------------
+  /views/login.xhtml
+  /views/dashboard.xhtml
+  /views/mis_ordenes.xhtml     (técnico)
+  /views/ordenes.xhtml       (admin)
+  /views/reparaciones.xhtml
+  /views/repuestos.xhtml
+  /views/usuarios.xhtml
+  /views/tecnicos.xhtml
+  /views/clientes.xhtml
+  /views/vehiculos.xhtml
+  /views/cambiar_contrasena.xhtml   (cualquier usuario logueado)
+
+
+================================================================================
+Fin del documento — actualizar rutas al .accdb y versiones según su entorno.
+================================================================================

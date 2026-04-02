@@ -1,0 +1,63 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/template.xhtml">
+
+    <ui:define name="title">Cambiar contraseña</ui:define>
+
+    <ui:define name="content">
+        <h:panelGroup rendered="#{loginBean.logueado}">
+            <div class="mb-4">
+                <h2 class="h3 fw-bold text-primary mb-1">Mi cuenta — Cambiar contraseña</h2>
+                <p class="text-muted small mb-0">
+                    Sesión: <strong><h:outputText value="#{loginBean.usuario.correo}"/></strong>
+                    <span class="text-muted"> · </span>
+                    Rol: <span class="badge bg-secondary"><h:outputText value="#{loginBean.usuario.rol}"/></span>
+                </p>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4" style="max-width: 520px;">
+                <div class="card-body p-4 p-md-5">
+                    <h3 class="h6 fw-semibold text-secondary mb-3">
+                        <i class="bi bi-shield-lock me-2"></i>Actualizar contraseña
+                    </h3>
+                    <p class="small text-muted mb-4">
+                        Solo puede modificar la contraseña de su propia cuenta. Debe escribir la contraseña actual para confirmar.
+                    </p>
+
+                    <h:form id="formCambioClave">
+                        <div class="mb-3">
+                            <p:outputLabel for="act" value="Contraseña actual" styleClass="form-label small fw-semibold"/>
+                            <p:password id="act" value="#{cambiarContrasenaBean.contrasenaActual}" required="true"
+                                        requiredMessage="Obligatorio" feedback="false" redisplay="true"
+                                        styleClass="form-control w-100" autocomplete="current-password"/>
+                        </div>
+                        <div class="mb-3">
+                            <p:outputLabel for="nueva" value="Nueva contraseña" styleClass="form-label small fw-semibold"/>
+                            <p:password id="nueva" value="#{cambiarContrasenaBean.contrasenaNueva}" required="true"
+                                        requiredMessage="Obligatorio" feedback="false" redisplay="true"
+                                        styleClass="form-control w-100" autocomplete="new-password"/>
+                            <div class="form-text">Mínimo 4 caracteres.</div>
+                        </div>
+                        <div class="mb-4">
+                            <p:outputLabel for="rep" value="Repetir nueva contraseña" styleClass="form-label small fw-semibold"/>
+                            <p:password id="rep" value="#{cambiarContrasenaBean.contrasenaNuevaRepetir}" required="true"
+                                        requiredMessage="Obligatorio" feedback="false" redisplay="true"
+                                        styleClass="form-control w-100" autocomplete="new-password"/>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <p:commandButton value="Guardar nueva contraseña" icon="pi pi-check" action="#{cambiarContrasenaBean.guardar}"
+                                             update="formCambioClave :formGrowl:growl" process="@form"
+                                             styleClass="btn btn-primary rounded-3"/>
+                            <p:commandButton value="Limpiar" icon="pi pi-times" action="#{cambiarContrasenaBean.limpiar}"
+                                             update="formCambioClave" process="@this"
+                                             styleClass="btn btn-outline-secondary rounded-3"/>
+                        </div>
+                    </h:form>
+                </div>
+            </div>
+        </h:panelGroup>
+    </ui:define>
+</ui:composition>

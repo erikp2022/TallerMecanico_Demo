@@ -1,0 +1,287 @@
+/* Complemento a Bootstrap 5.3 — Tema taller (azul oscuro, gris, blanco) */
+:root {
+    --taller-primary: #0d1b2a;
+    --taller-primary-mid: #1b263b;
+    --taller-accent: #415a77;
+    --estado-pendiente: #ffc107;
+    --estado-proceso: #0d6efd;
+    --estado-finalizado: #198754;
+}
+
+/* ---------- Login ---------- */
+.login-page {
+    background: linear-gradient(145deg, #0d1b2a 0%, #1b263b 45%, #415a77 100%);
+}
+
+.login-page .card {
+    backdrop-filter: blur(8px);
+}
+
+/* ---------- Layout app ---------- */
+body.taller-body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.taller-sidebar {
+    background: linear-gradient(180deg, var(--taller-primary) 0%, #0a1219 100%);
+    min-height: 100vh;
+}
+
+.taller-sidebar .nav-link:hover,
+.taller-sidebar .nav-link:focus {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #fff !important;
+}
+
+.taller-main {
+    background: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* ---------- Badges de estado ---------- */
+.badge-estado {
+    display: inline-block;
+    padding: 0.35rem 0.65rem;
+    border-radius: 50rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.badge-pendiente { background: var(--estado-pendiente); color: #212529 !important; }
+.badge-proceso { background: var(--estado-proceso); }
+.badge-finalizado { background: var(--estado-finalizado); }
+
+/* ---------- Gráfico barras dashboard ---------- */
+.chart-bars {
+    background: #fff;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.chart-row { margin-bottom: 0.85rem; }
+.chart-row .lbl {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-bottom: 0.35rem;
+}
+.chart-track {
+    height: 10px;
+    background: #e9ecef;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.chart-fill { height: 100%; border-radius: 6px; transition: width 0.35s ease; }
+.fill-pendiente { background: var(--estado-pendiente); }
+.fill-proceso { background: var(--estado-proceso); }
+.fill-finalizado { background: var(--estado-finalizado); }
+
+/* ---------- PrimeFaces + Bootstrap ---------- */
+body .ui-widget,
+body .ui-widget .ui-widget {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+body .ui-button.btn,
+body .ui-button.btn-primary,
+body a.ui-commandlink.nav-link {
+  box-shadow: none;
+  text-decoration: none !important;
+}
+
+body a.ui-commandlink.nav-link:hover {
+  text-decoration: none !important;
+}
+
+body .ui-button.btn-primary,
+body .ui-button.btn-primary.ui-state-hover {
+    background: var(--bs-primary) !important;
+    border-color: var(--bs-primary) !important;
+    color: #fff !important;
+}
+
+body .ui-button.ui-button-text-icon-left .ui-button-text {
+    padding-left: 2rem;
+}
+
+/* Tablas PrimeFaces estilo Bootstrap */
+body .ui-datatable table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+body .ui-datatable thead th {
+    background: var(--taller-primary-mid) !important;
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border: none !important;
+    padding: 0.75rem 1rem !important;
+}
+
+body .ui-datatable tbody tr:nth-child(even) {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body .ui-datatable tbody td {
+    border-color: #e9ecef !important;
+    padding: 0.65rem 1rem !important;
+    vertical-align: middle;
+}
+
+body .ui-paginator {
+    background: #fff !important;
+    border: 1px solid #dee2e6 !important;
+    border-top: none !important;
+    padding: 0.5rem !important;
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+
+/* Diálogos — por encima de Bootstrap (navbar ~1030); overlay clicable */
+body .ui-widget-overlay,
+body .ui-dialog-mask {
+    z-index: 1080 !important;
+}
+
+body .ui-dialog {
+    z-index: 1090 !important;
+    box-sizing: border-box;
+    max-width: 96vw !important;
+    background: #fff; /* AGREGADO: fondo blanco al modal */
+}
+
+/* Listas desplegables y calendarios por encima del diálogo (evitan cortes con overflow) */
+body .ui-selectonemenu-panel,
+body .ui-selectonemenu-items-wrapper,
+body .ui-datepicker {
+    z-index: 3000 !important;
+}
+
+body .ui-selectonemenu-panel .ui-selectonemenu-items {
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+body .ui-dialog .ui-dialog-titlebar {
+    background: var(--taller-primary-mid) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+    padding: 1rem 2.75rem 1rem 1.25rem !important;
+    position: relative;
+}
+
+body .ui-dialog .ui-dialog-content {
+    box-sizing: border-box;
+    padding: 1rem 1.15rem !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: min(70vh, 32rem);
+    -webkit-overflow-scrolling: touch;
+}
+
+body .ui-dialog .ui-dialog-footer {
+    border-top: 1px solid #dee2e6 !important;
+    padding: 0.75rem 1.25rem !important;
+    background: #f8f9fa !important;
+    border-radius: 0 0 0.5rem 0.5rem !important;
+}
+
+/* Botón X siempre visible y clicable */
+body .ui-dialog .ui-dialog-titlebar-close {
+    color: #fff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    width: 2.25rem !important;
+    height: 2.25rem !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0.375rem !important;
+    background: rgba(255, 255, 255, 0.18) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    right: 0.75rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+}
+
+body .ui-dialog .ui-dialog-titlebar-close:hover {
+    background: rgba(255, 255, 255, 0.35) !important;
+}
+
+body .ui-dialog .ui-dialog-titlebar-close .ui-icon {
+    opacity: 1 !important;
+}
+
+/* Anchos por tipo (formularios cortos vs pantallas con tablas) */
+body .ui-dialog.taller-dialog-sm { width: min(96vw, 420px) !important; max-width: min(96vw, 420px) !important; }
+body .ui-dialog.taller-dialog-md { width: min(96vw, 520px) !important; max-width: min(96vw, 520px) !important; }
+body .ui-dialog.taller-dialog-lg { width: min(96vw, 640px) !important; max-width: min(96vw, 640px) !important; }
+body .ui-dialog.taller-dialog-xl { width: min(96vw, 880px) !important; max-width: min(96vw, 880px) !important; }
+
+/* Confirmación borrar: ancho acotado y legible */
+body .ui-dialog.taller-pf-confirm,
+body .ui-confirm-dialog {
+    z-index: 1100 !important;
+    max-width: min(96vw, 400px) !important;
+}
+
+/* Formularios en panelGrid dentro de modales: menos aire, etiquetas alineadas */
+body .ui-dialog .taller-dialog-grid.ui-panelgrid .ui-panelgrid-cell {
+    padding: 0.35rem 0.5rem !important;
+    vertical-align: middle;
+}
+
+body .ui-dialog .taller-dialog-grid label.form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.2rem;
+}
+
+@media (max-width: 576px) {
+    body .ui-dialog .taller-dialog-grid.ui-panelgrid .ui-panelgrid-cell {
+        display: block;
+        width: 100% !important;
+    }
+}
+
+/* Inputs en diálogos */
+body .ui-inputfield.form-control,
+body .ui-selectonemenu .ui-selectonemenu-label {
+    border-radius: 0.375rem;
+}
+
+body .ui-selectonemenu {
+    width: 100% !important;
+    border-radius: 0.375rem;
+}
+
+body .ui-selectonemenu .ui-selectonemenu-trigger {
+    border-radius: 0 0.375rem 0.375rem 0;
+}
+
+/* Panel filtros */
+body .ui-panel .ui-panel-titlebar {
+    background: #fff !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+    font-weight: 600;
+    color: var(--taller-primary-mid);
+}
+
+body .ui-panel .ui-panel-content {
+    border: 1px solid #dee2e6 !important;
+    border-top: none !important;
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+
+/* Growl */
+body .ui-growl {
+    z-index: 9999 !important;
+}

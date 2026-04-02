@@ -1,0 +1,64 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/template.xhtml">
+
+    <ui:define name="title">Panel principal</ui:define>
+
+    <ui:define name="content">
+        <f:metadata>
+            <f:viewAction action="#{dashboardBean.cargar}"/>
+        </f:metadata>
+
+        <div class="mb-4">
+            <h2 class="h3 fw-bold text-primary mb-1">Dashboard</h2>
+            <p class="text-muted small mb-0">Resumen de órdenes y distribución por estado</p>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-sm-6 col-xl-4">
+                <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="rounded-3 bg-primary bg-opacity-10 text-primary p-3">
+                                <i class="bi bi-clipboard-data fs-3"></i>
+                            </span>
+                            <div>
+                                <div class="text-muted small text-uppercase fw-semibold">Total órdenes</div>
+                                <div class="display-6 fw-bold text-dark lh-1">#{dashboardBean.totalOrdenes}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-white border-0 py-3 rounded-top-4">
+                <span class="fw-semibold text-secondary"><i class="bi bi-bar-chart-line me-2"></i>Órdenes por estado</span>
+            </div>
+            <div class="card-body">
+                <ui:repeat value="#{dashboardBean.clavesEstados}" var="est">
+                    <div class="chart-row">
+                        <div class="lbl">
+                            <span>#{est}</span>
+                            <span class="badge bg-secondary">#{dashboardBean.cantidadEstado(est)}</span>
+                        </div>
+                        <div class="chart-track">
+                            <div class="chart-fill #{dashboardBean.estiloBarra(est)}"
+                                 style="width: #{dashboardBean.porcentajeBarra(est)}%;"></div>
+                        </div>
+                    </div>
+                </ui:repeat>
+                <p class="small text-muted mt-4 mb-0">
+                    Leyenda:
+                    <span class="badge rounded-pill ms-1" style="background:#ffc107;color:#212529;">Pendiente</span>
+                    <span class="badge rounded-pill ms-1 bg-primary">En proceso</span>
+                    <span class="badge rounded-pill ms-1 bg-success">Finalizado</span>
+                </p>
+            </div>
+        </div>
+    </ui:define>
+</ui:composition>

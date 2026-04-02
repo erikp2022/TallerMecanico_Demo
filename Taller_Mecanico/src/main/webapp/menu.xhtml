@@ -1,0 +1,71 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+
+    <h:form id="formMenu" prependId="false">
+        <div class="nav flex-column nav-pills gap-1" id="menuTaller">
+            <h:link outcome="/views/dashboard.xhtml" styleClass="nav-link text-white-50 rounded-3 py-2 px-3 d-flex align-items-center">
+                <i class="bi bi-speedometer2 me-2 fs-5"></i>
+                <span>Inicio</span>
+            </h:link>
+
+            <h:panelGroup layout="block" rendered="#{loginBean.tecnico}">
+                <h:link outcome="/views/mis_ordenes.xhtml" styleClass="nav-link text-white-50 rounded-3 py-2 px-3 d-flex align-items-center">
+                    <i class="bi bi-person-check me-2 fs-5"></i>
+                    <span>Mis órdenes</span>
+                </h:link>
+            </h:panelGroup>
+
+            <h:panelGroup layout="block" rendered="#{loginBean.admin}">
+                <h:link outcome="/views/ordenes.xhtml" styleClass="nav-link text-white-50 rounded-3 py-2 px-3 d-flex align-items-center">
+                    <i class="bi bi-clipboard-check me-2 fs-5"></i>
+                    <span>Órdenes (todas)</span>
+                </h:link>
+            </h:panelGroup>
+
+            <h:link outcome="/views/reparaciones.xhtml" styleClass="nav-link text-white-50 rounded-3 py-2 px-3 d-flex align-items-center">
+                <i class="bi bi-tools me-2 fs-5"></i>
+                <span>Reparaciones</span>
+            </h:link>
+
+            <h:panelGroup layout="block" rendered="#{loginBean.admin}">
+                <h:link outcome="/views/repuestos.xhtml" styleClass="nav-link text-white-50 rounded-3 py-2 px-3 d-flex align-items-center">
+                    <i class="bi bi-box-seam me-2 fs-5"></i>
+                    <span>Repuestos</span>
+                </h:link>
+                <h:link outcome="/views/usuarios.xhtml" styleClass="nav-link text-white-50 rounded-3 py-2 px-3 d-flex align-items-center">
+                    <i class="bi bi-people me-2 fs-5"></i>
+                    <span>Usuarios</span>
+                </h:link>
+                <h:link outcome="/views/tecnicos.xhtml" styleClass="nav-link text-white-50 rounded-3 py-2 px-3 d-flex align-items-center">
+                    <i class="bi bi-person-badge me-2 fs-5"></i>
+                    <span>Técnicos</span>
+                </h:link>
+                <h:link outcome="/views/clientes.xhtml" styleClass="nav-link text-white-50 rounded-3 py-2 px-3 d-flex align-items-center">
+                    <i class="bi bi-person-lines-fill me-2 fs-5"></i>
+                    <span>Clientes</span>
+                </h:link>
+                <h:link outcome="/views/vehiculos.xhtml" styleClass="nav-link text-white-50 rounded-3 py-2 px-3 d-flex align-items-center">
+                    <i class="bi bi-truck-front me-2 fs-5"></i>
+                    <span>Vehículos</span>
+                </h:link>
+            </h:panelGroup>
+
+            <h:panelGroup layout="block" rendered="#{loginBean.logueado}">
+                <h:link outcome="/views/cambiar_contrasena.xhtml" styleClass="nav-link text-white-50 rounded-3 py-2 px-3 d-flex align-items-center">
+                    <i class="bi bi-key me-2 fs-5"></i>
+                    <span>Cambiar contraseña</span>
+                </h:link>
+            </h:panelGroup>
+
+            <hr class="border-secondary border-opacity-25 my-2"/>
+
+            <p:commandLink action="#{loginBean.cerrarSesion}" ajax="false"
+                           styleClass="nav-link text-danger-emphasis bg-danger bg-opacity-10 rounded-3 py-2 px-3 d-flex align-items-center border-0 w-100 text-start">
+                <i class="bi bi-box-arrow-right me-2 fs-5"></i>
+                <span>Cerrar sesión</span>
+            </p:commandLink>
+        </div>
+    </h:form>
+</ui:composition>
