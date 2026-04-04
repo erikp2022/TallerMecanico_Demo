@@ -18,11 +18,13 @@
         <param-name>primefaces.THEME</param-name>
         <param-value>none</param-value>
     </context-param>
-    <!-- Diálogos PrimeFaces al final del body: mejor stacking, selects y datepicker no quedan recortados -->
+
+    <!-- Diálogos PrimeFaces al final del body -->
     <context-param>
         <param-name>primefaces.DIALOG_APPEND_TO_BODY</param-name>
         <param-value>true</param-value>
     </context-param>
+
     <!-- Ruta del archivo de ACCESS para la base de datos-->
     <context-param>
         <param-name>taller.accdb.path</param-name>

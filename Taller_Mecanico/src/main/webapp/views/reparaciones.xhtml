@@ -80,6 +80,7 @@
                       resizable="false" responsive="true" styleClass="rounded-3 shadow taller-dialog-md">
 
                 <p:panelGrid columns="2" rendered="#{reparacionBean.nuevo != null}" styleClass="ui-fluid taller-dialog-grid">
+
                     <p:outputLabel value="Orden de Trabajo" styleClass="form-label font-bold"/>
                     <p:selectOneMenu value="#{reparacionBean.nuevo.idOrden}" required="true">
                         <f:selectItem itemLabel="Seleccione orden..." itemValue="#{null}"/>
@@ -92,14 +93,25 @@
                         <f:selectItems value="#{reparacionBean.estados}"/>
                     </p:selectOneMenu>
 
+                    <p:outputLabel value="Repuesto utilizado" styleClass="form-label font-bold text-primary"/>
+                    <p:selectOneMenu value="#{reparacionBean.idRepuestoSeleccionado}" filter="true" filterMatchMode="contains">
+                        <f:selectItem itemLabel="Ninguno / Solo mano de obra" itemValue="#{null}"/>
+                        <f:selectItems value="#{reparacionBean.repuestosDisponibles}" var="rep"
+                                       itemLabel="#{rep.nombre} (Stock: #{rep.stock})" itemValue="#{rep.idRepuesto}"/>
+                    </p:selectOneMenu>
+
+                    <p:outputLabel value="Cantidad" styleClass="form-label font-bold"/>
+                    <p:spinner value="#{reparacionBean.cantidadRepuesto}" min="1" max="100" />
+
                     <p:outputLabel value="Descripción" styleClass="form-label font-bold"/>
-                    <p:inputTextarea value="#{reparacionBean.nuevo.descripcion}" rows="3" required="true"/>
+                    <p:inputTextarea value="#{reparacionBean.nuevo.descripcion}" rows="3"
+                                     placeholder="Describa el trabajo realizado..." required="true"/>
                 </p:panelGrid>
 
                 <f:facet name="footer">
                     <div class="d-flex justify-content-end gap-2">
                         <p:commandButton type="button" value="Cancelar" onclick="PF('dlgNuevaRep').hide();" styleClass="btn btn-outline-secondary"/>
-                        <p:commandButton value="Guardar" action="#{reparacionBean.guardar}"
+                        <p:commandButton value="Guardar Reparación" action="#{reparacionBean.guardar}"
                                          update=":formTablaRep :growl"
                                          oncomplete="if(!args.validationFailed) PF('dlgNuevaRep').hide()"
                                          styleClass="btn btn-primary" icon="pi pi-check"/>
@@ -107,6 +119,9 @@
                 </f:facet>
             </p:dialog>
         </h:form>
+
+
+
 
         <h:form id="formDlgEditRep">
             <p:dialog header="Editar reparación" widgetVar="dlgEditRep" modal="true"
@@ -131,6 +146,8 @@
                                          styleClass="btn btn-primary" icon="pi pi-save"/>
                     </div>
                 </f:facet>
+
+
             </p:dialog>
         </h:form>
 

@@ -11,7 +11,7 @@ import jakarta.inject.Named;
 import java.io.Serializable;
 
 /**
- * Permite al usuario en sesión cambiar su propia contraseña (validando la actual).
+ * Permitimos que el usuario cambie su propia contra.
  */
 @Named("cambiarContrasenaBean")
 @ViewScoped

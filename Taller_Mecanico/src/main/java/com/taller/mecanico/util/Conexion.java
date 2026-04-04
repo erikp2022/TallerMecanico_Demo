@@ -5,17 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- * Conexión JDBC a Microsoft Access (.accdb / .mdb).
- * <p>
- * Se usa <strong>UCanAccess</strong> (driver JDBC en Java). Oracle eliminó el puente
- * {@code jdbc:odbc:...} en JDK 8+, por eso esa URL ya no encuentra ningún driver.
- * Las consultas SQL del proyecto siguen siendo las mismas para Access.
- * </p>
- * <p>
- * Configure la ruta absoluta al archivo mediante {@link #setRutaBaseDatos(String)}
- * o el parámetro de contexto {@code taller.accdb.path} en {@code web.xml}.
- * Use barras normales ({@code /}) o {@code \\} en la ruta.
- * </p>
+ * Aqeui conectamos la base de datos Acess.
  */
 public final class Conexion {
 

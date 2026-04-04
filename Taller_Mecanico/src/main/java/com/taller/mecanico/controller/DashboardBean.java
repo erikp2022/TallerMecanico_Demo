@@ -46,7 +46,7 @@ public class DashboardBean implements Serializable {
         }
     }
 
-    /** Porcentaje para barra CSS (0–100). */
+    /** barra porcentaje  */
     public int porcentajeBarra(String estado) {
         if (totalOrdenes <= 0) {
             return 0;

@@ -11,8 +11,7 @@ import java.io.Serializable;
 import java.sql.SQLException;
 
 /**
- * Sesión de usuario. Roles válidos: {@code admin} y {@code tecnico}.
- * El vínculo técnico es {@link Usuario#getIdTecnico()} (tabla usuarios).
+ * validamos que sea admin o tecnico segun el rol .
  */
 @Named("loginBean")
 @SessionScoped

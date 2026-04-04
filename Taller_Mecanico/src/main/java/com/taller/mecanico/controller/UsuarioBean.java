@@ -115,7 +115,7 @@ public class UsuarioBean implements Serializable {
                 return;
             }
 
-            // Mantener contraseña actual si no se escribe una nueva
+            // mantenemos un contra si no se escribe una nueva
             String passNueva = seleccionado.getContrasena() != null ? seleccionado.getContrasena().trim() : "";
             if (passNueva.isEmpty()) {
                 Usuario existente = dao.buscarPorId(seleccionado.getIdUsuario());
