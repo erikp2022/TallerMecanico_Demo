@@ -40,63 +40,95 @@
                 </p:dataTable>
             </h:form>
 
+            <!-- DIALOGO NUEVO TÉCNICO -->
             <h:form id="formDlgNuevoTec">
                 <p:dialog header="Registrar Nuevo Técnico" widgetVar="dlgNuevoTec" modal="true" responsive="true">
+
+                    <p:messages id="msgsNuevo" closable="true" showDetail="false" />
+
                     <p:panelGrid columns="2" rendered="#{tecnicoBean.nuevo != null}" styleClass="ui-fluid">
                         <p:outputLabel value="Nombre Completo:" for="nomN"/>
-                        <p:inputText id="nomN" value="#{tecnicoBean.nuevo.nombre}" required="true"/>
+                        <p:inputText id="nomN" value="#{tecnicoBean.nuevo.nombre}"
+                                     required="true"
+                                     requiredMessage="El nombre es obligatorio"/>
 
-                        <p:outputLabel value="Correo (Gmail/Empresa):" for="corN"/>
-                        <h:panelGroup>
-                            <p:inputText id="corN" value="#{tecnicoBean.nuevo.correo}" required="true"
-                                         placeholder="ejemplo@gmail.com">
-                                <f:validateRegex pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$" />
-                            </p:inputText>
-                            <p:message for="corN" display="text"/>
-                        </h:panelGroup>
+                        <p:outputLabel value="Correo:" for="corN"/>
+                        <p:inputText id="corN" value="#{tecnicoBean.nuevo.correo}"
+                                     required="true"
+                                     placeholder="ejemplo@gmail.com"
+                                     requiredMessage="El correo es obligatorio"
+                                     validatorMessage="Correo inválido">
+                            <f:validateRegex pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"/>
+                            <p:ajax event="blur" update="msgsNuevo"/>
+                        </p:inputText>
 
-                        <p:outputLabel value="Especialidad:"/>
-                        <p:inputText value="#{tecnicoBean.nuevo.especialidad}"/>
+                        <p:outputLabel value="Especialidad:" for="espN"/>
+                        <p:inputText id="espN" value="#{tecnicoBean.nuevo.especialidad}"/>
 
                         <p:outputLabel value="Estado:"/>
                         <p:selectOneMenu value="#{tecnicoBean.nuevo.estado}">
                             <f:selectItems value="#{tecnicoBean.estadosRegistro}"/>
                         </p:selectOneMenu>
                     </p:panelGrid>
+
                     <f:facet name="footer">
-                        <p:commandButton value="Guardar" action="#{tecnicoBean.guardar}"
-                                         update=":formTablaTec :growl @form"
-                                         oncomplete="if(!args.validationFailed) PF('dlgNuevoTec').hide()"/>
+                        <div class="d-flex justify-content-end gap-2">
+                            <p:commandButton value="Cancelar" type="button"
+                                             onclick="PF('dlgNuevoTec').hide()"
+                                             styleClass="btn btn-secondary"/>
+                            <p:commandButton value="Guardar"
+                                             action="#{tecnicoBean.guardar}"
+                                             update="msgsNuevo :formTablaTec :growl"
+                                             oncomplete="if(!args.validationFailed) PF('dlgNuevoTec').hide()"
+                                             styleClass="btn btn-primary"/>
+                        </div>
                     </f:facet>
                 </p:dialog>
             </h:form>
 
+            <!-- DIALOGO EDITAR TÉCNICO -->
             <h:form id="formDlgEditTec">
-                <p:dialog header="Modificar Técnico" widgetVar="dlgEditTec" modal="true" responsive="true">
+                <p:dialog header="Modificar Técnico" widgetVar="dlgEditTec"
+                          modal="true" responsive="true" closable="true">
+
+                    <p:messages id="msgsEdit" closable="true" showDetail="false"/>
+
                     <p:panelGrid columns="2" rendered="#{tecnicoBean.seleccionado != null}" styleClass="ui-fluid">
                         <p:outputLabel value="Nombre:" for="nomE"/>
-                        <p:inputText id="nomE" value="#{tecnicoBean.seleccionado.nombre}" required="true"/>
+                        <p:inputText id="nomE" value="#{tecnicoBean.seleccionado.nombre}"
+                                     required="true"
+                                     requiredMessage="El nombre es obligatorio"/>
 
                         <p:outputLabel value="Correo:" for="corE"/>
-                        <h:panelGroup>
-                            <p:inputText id="corE" value="#{tecnicoBean.seleccionado.correo}" required="true">
-                                <f:validateRegex pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$" />
-                            </p:inputText>
-                            <p:message for="corE" display="text"/>
-                        </h:panelGroup>
+                        <p:inputText id="corE" value="#{tecnicoBean.seleccionado.correo}"
+                                     required="true"
+                                     requiredMessage="El correo es obligatorio"
+                                     validatorMessage="Correo inválido">
+                            <f:validateRegex pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"/>
+                            <p:ajax event="blur" update="msgsEdit"/>
+                        </p:inputText>
 
                         <p:outputLabel value="Estado:"/>
                         <p:selectOneMenu value="#{tecnicoBean.seleccionado.estado}">
                             <f:selectItems value="#{tecnicoBean.estadosRegistro}"/>
                         </p:selectOneMenu>
                     </p:panelGrid>
+
                     <f:facet name="footer">
-                        <p:commandButton value="Actualizar" action="#{tecnicoBean.actualizar}"
-                                         update=":formTablaTec :growl @form"
-                                         oncomplete="if(!args.validationFailed) PF('dlgEditTec').hide()"/>
+                        <div class="d-flex justify-content-end gap-2">
+                            <p:commandButton value="Cancelar" type="button"
+                                             onclick="PF('dlgEditTec').hide()"
+                                             styleClass="btn btn-secondary"/>
+                            <p:commandButton value="Actualizar Datos"
+                                             action="#{tecnicoBean.actualizar}"
+                                             update="msgsEdit :formTablaTec :growl"
+                                             oncomplete="if(!args.validationFailed &amp;&amp; !args.errorEncontrado) PF('dlgEditTec').hide()"
+                                             styleClass="btn btn-primary"/>
+                        </div>
                     </f:facet>
                 </p:dialog>
             </h:form>
+
         </h:panelGroup>
     </ui:define>
 </ui:composition>

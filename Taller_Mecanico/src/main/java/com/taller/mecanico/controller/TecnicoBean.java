@@ -19,6 +19,9 @@ public class TecnicoBean implements Serializable {
     private static final long serialVersionUID = 1L;
     public static final String PASSWORD_DEFECTO = "1234";
 
+    // 777
+    private static final String GMAIL_REGEX = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
+
     // Regex estricta para correos
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$");
 
@@ -84,15 +87,21 @@ public class TecnicoBean implements Serializable {
             warn("El nombre es requerido.");
             return false;
         }
-        String correo = (t.getCorreo() != null) ? t.getCorreo().trim() : "";
-        if (!EMAIL_PATTERN.matcher(correo).matches()) {
-            warn("Formato de correo inválido (ejemplo@gmail.com).");
+
+        String correo = (t.getCorreo() != null) ? t.getCorreo().trim().toLowerCase() : "";
+
+        // Tiene que cumplir la validacion si no pasa
+        if (!correo.matches(GMAIL_REGEX)) {
+            warn("Error: El correo '" + correo + "' no tiene un formato válido (ejemplo@gmail.com).");
             return false;
         }
-        if (dao.existeCorreo(correo, idActual) || usuarioDAO.existeCorreo(correo, idActual != null ? usuarioDAO.buscarPorIdTecnico(idActual).getIdUsuario() : null)) {
-            warn("Este correo ya está registrado.");
+
+        // Validación de duplicados
+        if (dao.existeCorreo(correo, idActual)) {
+            warn("Este correo ya pertenece a otro técnico.");
             return false;
         }
+
         return true;
     }
 

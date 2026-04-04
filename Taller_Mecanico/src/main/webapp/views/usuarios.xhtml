@@ -50,9 +50,11 @@
                             <p:column headerText="Rol">
                                 <span class="badge bg-secondary">#{u.rol}</span>
                             </p:column>
+
                             <p:column headerText="Estado">
-                                <h:outputText value="#{u.estado}"/>
+                                <span class="badge #{u.estado eq 'Activo' ? 'bg-success' : 'bg-secondary'}">#{u.estado}</span>
                             </p:column>
+
                             <p:column headerText="Acciones" width="200">
                                 <div class="btn-group btn-group-sm">
                                     <p:commandButton icon="pi pi-pencil" title="Editar"
