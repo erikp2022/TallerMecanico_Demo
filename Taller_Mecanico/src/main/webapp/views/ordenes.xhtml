@@ -11,13 +11,15 @@
         <f:metadata>
             <f:viewAction action="#{ordenBean.initPaginaAdmin}"/>
         </f:metadata>
+
         <h:form id="formBarOrden" prependId="false">
             <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
                 <div>
                     <h2 class="h3 fw-bold text-primary mb-1">Órdenes de trabajo</h2>
-                    <p class="text-muted small mb-0">Filtros, asignación de técnicos y repuestos por orden</p>
+                    <p class="text-muted small mb-0">Gestión de reparaciones, técnicos y repuestos</p>
                 </div>
-                <p:commandButton value="Nueva orden" icon="pi pi-plus" actionListener="#{ordenBean.prepararNuevo}"
+                <p:commandButton value="Nueva orden" icon="pi pi-plus"
+                                 actionListener="#{ordenBean.prepararNuevo}"
                                  update=":formDlgNuevaOrden" oncomplete="PF('dlgNuevaOrden').show()"
                                  styleClass="btn btn-primary rounded-3 shadow-sm"/>
             </div>
@@ -26,11 +28,11 @@
         <h:form id="formFiltros">
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white py-3 border-0">
-                    <span class="fw-semibold text-secondary"><i class="bi bi-funnel me-2"></i>Búsqueda y filtros</span>
+                    <span class="fw-semibold text-secondary"><i class="bi bi-funnel me-2"></i>Filtros de búsqueda</span>
                 </div>
                 <div class="card-body">
                     <div class="row g-3 align-items-end">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <p:outputLabel value="Placa" styleClass="form-label small text-muted"/>
                             <p:inputText value="#{ordenBean.filtroPlaca}" placeholder="Ej. HBU2574" styleClass="form-control"/>
                         </div>
@@ -49,7 +51,7 @@
                                                itemLabel="#{t.nombre}" itemValue="#{t.idTecnico}"/>
                             </p:selectOneMenu>
                         </h:panelGroup>
-                        <div class="col-md-2 d-flex gap-2">
+                        <div class="col-md-3 d-flex gap-2">
                             <p:commandButton value="Buscar" icon="pi pi-search" action="#{ordenBean.cargarLista}"
                                              update=":formTablaOrdenes" process="@form"
                                              styleClass="btn btn-primary flex-grow-1"/>
@@ -65,166 +67,194 @@
             <div class="card border-0 shadow-sm">
                 <div class="table-responsive rounded-3">
                     <p:dataTable value="#{ordenBean.lista}" var="o" paginator="true" rows="10" reflow="true"
-                                 emptyMessage="Sin órdenes" widgetVar="tablaOrdenes"
+                                 emptyMessage="No se encontraron órdenes"
                                  tableStyleClass="table table-hover align-middle mb-0">
+
                         <p:column headerText="ID" width="60"><h:outputText value="#{o.idOrden}"/></p:column>
-                        <p:column headerText="Placa"><h:outputText value="#{o.placaVehiculo}"/></p:column>
+                        <p:column headerText="Placa" width="100"><h:outputText value="#{o.placaVehiculo}"/></p:column>
                         <p:column headerText="Cliente"><h:outputText value="#{o.nombreCliente}"/></p:column>
                         <p:column headerText="Técnico"><h:outputText value="#{o.nombreTecnico}"/></p:column>
-                        <p:column headerText="Ingreso"><h:outputText value="#{o.fechaIngreso}"/></p:column>
-                        <p:column headerText="Estado">
-                            <span class="#{ordenBean.claseBadgeEstado(o.estado)}"><h:outputText value="#{o.estado}"/></span>
+                        <p:column headerText="Ingreso" width="110"><h:outputText value="#{o.fechaIngreso}"/></p:column>
+
+                        <p:column headerText="Estado" width="130">
+                            <span class="#{ordenBean.claseBadgeEstado(o.estado)}">
+                                <h:outputText value="#{o.estado}"/>
+                            </span>
                         </p:column>
-                        <p:column headerText="Acciones" width="280">
+
+                        <p:column headerText="Acciones" width="180">
                             <div class="btn-group btn-group-sm">
-                                <p:commandButton icon="pi pi-pencil" title="Editar" process="@this" update=":formDlgEditOrden"
+                                <p:commandButton icon="pi pi-pencil" title="Editar" process="@this"
+                                                 update=":formDlgEditOrden"
                                                  actionListener="#{ordenBean.prepararEditar(o)}"
-                                                 oncomplete="PF('dlgEditOrden').show()" styleClass="btn btn-outline-primary"/>
+                                                 oncomplete="PF('dlgEditOrden').show()"
+                                                 styleClass="btn btn-outline-primary"/>
+
                                 <p:commandButton icon="pi pi-shopping-cart" title="Repuestos" process="@this"
                                                  actionListener="#{ordenBean.cargarDetalleRepuestos(o)}"
                                                  update=":formDlgRepuestos" oncomplete="PF('dlgRepuestos').show()"
                                                  styleClass="btn btn-outline-secondary"/>
-                                <p:commandButton icon="pi pi-trash" title="Eliminar" process="@this" rendered="#{loginBean.admin}"
-                                                 action="#{ordenBean.eliminar(o)}" update=":formTablaOrdenes :growl"
+
+                                <p:commandButton icon="pi pi-trash" title="Eliminar" process="@this"
+                                                 rendered="#{loginBean.admin}"
+                                                 action="#{ordenBean.eliminar(o)}"
+                                                 update=":formTablaOrdenes :growl"
                                                  styleClass="btn btn-outline-danger">
-                                    <p:confirm header="Confirmar" message="¿Eliminar orden?"/>
+                                    <p:confirm header="Confirmar acción"
+                                               message="¿Desea eliminar esta orden de trabajo?"
+                                               icon="pi pi-exclamation-triangle" />
                                 </p:commandButton>
                             </div>
                         </p:column>
                     </p:dataTable>
                 </div>
             </div>
-            <p:confirmDialog global="true" styleClass="taller-pf-confirm rounded-3 shadow"/>
+
+            <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350px">
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                    <p:commandButton value="Cancelar" type="button"
+                                     styleClass="ui-confirmdialog-no btn btn-outline-secondary" icon="pi pi-times" />
+                    <p:commandButton value="Sí, Eliminar" type="button"
+                                     styleClass="ui-confirmdialog-yes btn btn-danger" icon="pi pi-trash" />
+                </div>
+            </p:confirmDialog>
         </h:form>
 
         <h:form id="formDlgNuevaOrden">
-            <p:dialog header="Nueva orden" widgetVar="dlgNuevaOrden" modal="true" draggable="false" resizable="false"
-                      closable="true" closeOnEscape="true" responsive="true" blockScroll="true"
-                      styleClass="rounded-3 shadow taller-dialog-lg">
+            <p:dialog header="Registrar nueva orden" widgetVar="dlgNuevaOrden" modal="true"
+                      resizable="false" draggable="false" responsive="true"
+                      styleClass="rounded-3 shadow taller-dialog-md">
+
                 <p:panelGrid columns="2" rendered="#{ordenBean.nuevo != null}" styleClass="ui-fluid taller-dialog-grid">
-                    <p:outputLabel value="Fecha ingreso" styleClass="form-label"/>
-                    <p:datePicker value="#{ordenBean.nuevo.fechaIngreso}" showIcon="true" locale="es"/>
-                    <p:outputLabel value="Fecha salida" styleClass="form-label"/>
-                    <p:datePicker value="#{ordenBean.nuevo.fechaSalida}" showIcon="true" locale="es"/>
-                    <p:outputLabel value="Estado" styleClass="form-label"/>
-                    <p:selectOneMenu value="#{ordenBean.nuevo.estado}" styleClass="w-100">
+
+                    <p:outputLabel value="Fecha ingreso" styleClass="form-label font-bold"/>
+                    <p:datePicker value="#{ordenBean.nuevo.fechaIngreso}" showIcon="true" required="true"
+                                  pattern="dd/MM/yyyy" locale="es"/>
+
+                    <p:outputLabel value="Fecha salida (Estimada)" styleClass="form-label font-bold"/>
+                    <p:datePicker value="#{ordenBean.nuevo.fechaSalida}" showIcon="true"
+                                  pattern="dd/MM/yyyy" locale="es"/>
+
+                    <p:outputLabel value="Estado Inicial" styleClass="form-label font-bold"/>
+                    <p:selectOneMenu value="#{ordenBean.nuevo.estado}">
                         <f:selectItems value="#{ordenBean.estadosOrden}"/>
                     </p:selectOneMenu>
-                    <p:outputLabel value="Descripción" styleClass="form-label"/>
-                    <p:inputTextarea value="#{ordenBean.nuevo.descripcion}" rows="3" styleClass="form-control"/>
-                    <p:outputLabel value="Vehículo" styleClass="form-label"/>
-                    <p:selectOneMenu value="#{ordenBean.nuevo.idVehiculo}" styleClass="w-100" required="true"
-                                     requiredMessage="Seleccione vehículo">
+
+                    <p:outputLabel value="Vehículo" styleClass="form-label font-bold"/>
+                    <p:selectOneMenu value="#{ordenBean.nuevo.idVehiculo}" required="true">
                         <f:selectItem itemLabel="Seleccione..." itemValue="#{null}"/>
                         <f:selectItems value="#{ordenBean.vehiculos}" var="v"
-                                       itemLabel="#{v.placa} — #{v.marca}" itemValue="#{v.idVehiculo}"/>
+                                       itemLabel="#{v.placa} - #{v.marca}" itemValue="#{v.idVehiculo}"/>
                     </p:selectOneMenu>
-                    <p:outputLabel value="Técnico" styleClass="form-label"/>
-                    <p:selectOneMenu value="#{ordenBean.nuevo.idTecnico}" styleClass="w-100" required="true"
-                                     requiredMessage="Asigne técnico">
+
+                    <p:outputLabel value="Técnico Asignado" styleClass="form-label font-bold"/>
+                    <p:selectOneMenu value="#{ordenBean.nuevo.idTecnico}" required="true">
                         <f:selectItem itemLabel="Seleccione..." itemValue="#{null}"/>
                         <f:selectItems value="#{ordenBean.tecnicos}" var="t"
                                        itemLabel="#{t.nombre}" itemValue="#{t.idTecnico}"/>
                     </p:selectOneMenu>
+
+                    <p:outputLabel value="Descripción" styleClass="form-label font-bold"/>
+                    <p:inputTextarea value="#{ordenBean.nuevo.descripcion}" rows="3" placeholder="Detalles de la falla..."/>
+
                 </p:panelGrid>
+
                 <f:facet name="footer">
-                    <div class="d-flex justify-content-end gap-2 flex-wrap w-100">
-                        <p:commandButton type="button" value="Cancelar" icon="pi pi-times"
-                                         onclick="PF('dlgNuevaOrden').hide(); return false;"
-                                         styleClass="btn btn-outline-secondary"/>
-                        <p:commandButton value="Crear orden" action="#{ordenBean.guardar}" update=":formTablaOrdenes :growl formDlgNuevaOrden"
+                    <div class="d-flex justify-content-end gap-2 p-2">
+                        <p:commandButton type="button" value="Cancelar"
+                                         onclick="PF('dlgNuevaOrden').hide();"
+                                         styleClass="btn btn-outline-secondary px-4"/>
+                        <p:commandButton value="Crear Orden" action="#{ordenBean.guardar}"
+                                         update=":formTablaOrdenes :growl"
                                          oncomplete="if(!args.validationFailed) PF('dlgNuevaOrden').hide()"
-                                         process="@form"
-                                         styleClass="btn btn-primary" icon="pi pi-check"/>
+                                         styleClass="btn btn-primary px-4" icon="pi pi-check"/>
                     </div>
                 </f:facet>
             </p:dialog>
         </h:form>
 
         <h:form id="formDlgEditOrden">
-            <p:dialog header="Editar orden" widgetVar="dlgEditOrden" modal="true" draggable="false" resizable="false"
-                      closable="true" closeOnEscape="true" responsive="true" blockScroll="true"
+            <p:dialog header="Editar orden de trabajo" widgetVar="dlgEditOrden" modal="true"
+                      resizable="false" draggable="false" responsive="true"
                       styleClass="rounded-3 shadow taller-dialog-lg">
+
                 <p:panelGrid columns="2" rendered="#{ordenBean.seleccionado != null}" styleClass="ui-fluid taller-dialog-grid">
-                    <p:outputLabel value="Fecha ingreso" styleClass="form-label"/>
-                    <p:datePicker value="#{ordenBean.seleccionado.fechaIngreso}" showIcon="true" locale="es"/>
-                    <p:outputLabel value="Fecha salida" styleClass="form-label"/>
-                    <p:datePicker value="#{ordenBean.seleccionado.fechaSalida}" showIcon="true" locale="es"/>
-                    <p:outputLabel value="Estado" styleClass="form-label"/>
-                    <p:selectOneMenu value="#{ordenBean.seleccionado.estado}" styleClass="w-100">
+                    <p:outputLabel value="Estado" styleClass="form-label font-bold"/>
+                    <p:selectOneMenu value="#{ordenBean.seleccionado.estado}">
                         <f:selectItems value="#{ordenBean.estadosOrden}"/>
                     </p:selectOneMenu>
-                    <p:outputLabel value="Descripción" styleClass="form-label"/>
-                    <p:inputTextarea value="#{ordenBean.seleccionado.descripcion}" rows="3" styleClass="form-control"/>
-                    <p:outputLabel value="Vehículo" styleClass="form-label"/>
-                    <p:selectOneMenu value="#{ordenBean.seleccionado.idVehiculo}" styleClass="w-100" required="true">
-                        <f:selectItem itemLabel="Seleccione..." itemValue="#{null}"/>
-                        <f:selectItems value="#{ordenBean.vehiculos}" var="v"
-                                       itemLabel="#{v.placa}" itemValue="#{v.idVehiculo}"/>
-                    </p:selectOneMenu>
-                    <p:outputLabel value="Técnico" styleClass="form-label"/>
-                    <p:selectOneMenu value="#{ordenBean.seleccionado.idTecnico}" styleClass="w-100" required="true">
-                        <f:selectItem itemLabel="Seleccione..." itemValue="#{null}"/>
+
+                    <p:outputLabel value="Fecha Salida" styleClass="form-label font-bold"/>
+                    <p:datePicker value="#{ordenBean.seleccionado.fechaSalida}" showIcon="true" locale="es" pattern="dd/MM/yyyy"/>
+
+                    <p:outputLabel value="Técnico Asignado" styleClass="form-label font-bold"/>
+                    <p:selectOneMenu value="#{ordenBean.seleccionado.idTecnico}" required="true">
                         <f:selectItems value="#{ordenBean.tecnicos}" var="t"
                                        itemLabel="#{t.nombre}" itemValue="#{t.idTecnico}"/>
                     </p:selectOneMenu>
+
+                    <p:outputLabel value="Descripción / Notas" styleClass="form-label font-bold"/>
+                    <p:inputTextarea value="#{ordenBean.seleccionado.descripcion}" rows="3" styleClass="form-control"/>
                 </p:panelGrid>
+
                 <f:facet name="footer">
-                    <div class="d-flex justify-content-end gap-2 flex-wrap w-100">
-                        <p:commandButton type="button" value="Cancelar" icon="pi pi-times"
-                                         onclick="PF('dlgEditOrden').hide(); return false;"
-                                         styleClass="btn btn-outline-secondary"/>
-                        <p:commandButton value="Guardar cambios" action="#{ordenBean.actualizar}" update=":formTablaOrdenes :growl formDlgEditOrden"
+                    <div class="d-flex justify-content-end gap-2">
+                        <p:commandButton type="button" value="Cancelar" onclick="PF('dlgEditOrden').hide();" styleClass="btn btn-outline-secondary"/>
+                        <p:commandButton value="Guardar Cambios" action="#{ordenBean.actualizar}"
+                                         update=":formTablaOrdenes :growl"
                                          oncomplete="if(!args.validationFailed) PF('dlgEditOrden').hide()"
-                                         process="@form"
-                                         styleClass="btn btn-primary" icon="pi pi-check"/>
+                                         styleClass="btn btn-primary" icon="pi pi-save"/>
                     </div>
                 </f:facet>
             </p:dialog>
         </h:form>
 
         <h:form id="formDlgRepuestos">
-            <p:dialog header="Repuestos de la orden" widgetVar="dlgRepuestos" modal="true" draggable="false" resizable="false"
-                      closable="true" closeOnEscape="true" responsive="true" blockScroll="true"
-                      styleClass="rounded-3 shadow taller-dialog-xl">
-                <div class="row g-3 align-items-end mb-3">
-                    <div class="col-md-5">
-                        <p:outputLabel value="Repuesto" styleClass="form-label small"/>
+            <p:dialog header="Repuestos de la orden" widgetVar="dlgRepuestos" modal="true"
+                      resizable="false" responsive="true" width="700"
+                      styleClass="rounded-3 shadow">
+
+                <div class="row g-3 align-items-end mb-4 p-2">
+                    <div class="col-md-6">
+                        <p:outputLabel value="Seleccionar Repuesto" styleClass="form-label small font-bold"/>
                         <p:selectOneMenu value="#{ordenBean.idRepuestoLinea}" styleClass="w-100">
                             <f:selectItem itemLabel="Seleccione..." itemValue="#{null}"/>
                             <f:selectItems value="#{ordenBean.repuestos}" var="r"
-                                           itemLabel="#{r.nombre} (stock #{r.stock})" itemValue="#{r.idRepuesto}"/>
+                                           itemLabel="#{r.nombre} (Stock: #{r.stock})" itemValue="#{r.idRepuesto}"/>
                         </p:selectOneMenu>
                     </div>
                     <div class="col-md-3">
-                        <p:outputLabel value="Cantidad" styleClass="form-label small"/>
-                        <p:inputNumber value="#{ordenBean.cantidadLinea}" minValue="1" styleClass="w-100"/>
+                        <p:outputLabel value="Cantidad" styleClass="form-label small font-bold"/>
+                        <p:inputNumber value="#{ordenBean.cantidadLinea}" minValue="1" decimalPlaces="0" styleClass="w-100"/>
                     </div>
-                    <div class="col-md-4">
-                        <p:commandButton value="Agregar línea" icon="pi pi-plus" action="#{ordenBean.agregarLineaRepuesto}"
-                                         update=":formDlgRepuestos :growl" process="@form"
+                    <div class="col-md-3">
+                        <p:commandButton value="Añadir" icon="pi pi-plus"
+                                         action="#{ordenBean.agregarLineaRepuesto}"
+                                         update=":formDlgRepuestos :growl"
                                          styleClass="btn btn-primary w-100"/>
                     </div>
                 </div>
-                <p:dataTable value="#{ordenBean.detallesRepuesto}" var="d" emptyMessage="Sin repuestos" reflow="true"
-                             tableStyleClass="table table-sm table-striped mb-0">
+
+                <p:dataTable value="#{ordenBean.detallesRepuesto}" var="d"
+                             emptyMessage="No hay repuestos asignados a esta orden."
+                             reflow="true" tableStyleClass="table table-sm table-hover align-middle">
                     <p:column headerText="Repuesto"><h:outputText value="#{d.nombreRepuesto}"/></p:column>
-                    <p:column headerText="Cantidad"><h:outputText value="#{d.cantidad}"/></p:column>
-                    <p:column headerText="Subtotal"><h:outputText value="#{d.subtotal}"/></p:column>
-                    <p:column headerText="" width="80">
+                    <p:column headerText="Cant." width="60" styleClass="text-center"><h:outputText value="#{d.cantidad}"/></p:column>
+                    <p:column headerText="Subtotal" width="100"><h:outputText value="L. #{d.subtotal}"/></p:column>
+                    <p:column headerText="" width="50">
                         <p:commandButton icon="pi pi-trash" action="#{ordenBean.eliminarLineaRepuesto(d)}"
                                          update=":formDlgRepuestos :growl" process="@this"
-                                         styleClass="btn btn-sm btn-outline-danger"/>
+                                         styleClass="btn btn-sm btn-outline-danger border-0"/>
                     </p:column>
                 </p:dataTable>
+
                 <f:facet name="footer">
-                    <div class="d-flex justify-content-end w-100">
-                        <p:commandButton type="button" value="Cerrar" icon="pi pi-times"
-                                         onclick="PF('dlgRepuestos').hide(); return false;"
-                                         styleClass="btn btn-secondary"/>
+                    <div class="d-flex justify-content-end">
+                        <p:commandButton type="button" value="Cerrar" onclick="PF('dlgRepuestos').hide();" styleClass="btn btn-secondary"/>
                     </div>
                 </f:facet>
             </p:dialog>
         </h:form>
+
     </ui:define>
 </ui:composition>

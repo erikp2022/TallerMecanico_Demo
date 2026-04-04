@@ -73,12 +73,15 @@ public class RepuestoBean implements Serializable {
         }
     }
 
-    public void eliminar(Repuesto r) {
+    public void eliminar() { // Sin parámetros
         try {
-            dao.eliminar(r.getIdRepuesto());
-            cargarLista();
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Eliminado", "Repuesto eliminado."));
+            if (seleccionado != null) {
+                dao.eliminar(seleccionado.getIdRepuesto());
+                seleccionado = null; // Limpiar la selección tras borrar
+                cargarLista();
+                FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage(FacesMessage.SEVERITY_INFO, "Eliminado", "Repuesto eliminado."));
+            }
         } catch (Exception e) {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));

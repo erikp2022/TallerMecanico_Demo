@@ -26,7 +26,7 @@
     <!-- Ruta del archivo de ACCESS para la base de datos-->
     <context-param>
         <param-name>taller.accdb.path</param-name>
-        <param-value>C:\Users\erikp\OneDrive\Documents\Proyecto FINAL Taller\taller.accdb</param-value>
+        <param-value>C:\Users\bryan\Proyecto-Taller-mecanico\TallerMecanico_Demo\taller.accdb</param-value>
     </context-param>
 
     <servlet>

@@ -144,22 +144,48 @@ public class TecnicoBean implements Serializable {
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
         }
     }
+    //cambios solo finalizado se elimina del tecnico y usuario panel ordenes tambien sevan
 
     public void eliminar(Tecnico t) {
         try {
+            // Bloquear si tiene órdenes pendientes o en proceso
+            if (dao.tieneOrdenesActivas(t.getIdTecnico())) {
+                FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage(FacesMessage.SEVERITY_WARN,
+                                "No se puede eliminar",
+                                "El técnico tiene órdenes pendientes o en proceso. " +
+                                        "Finalice todas las órdenes antes de eliminar."));
+                return;
+            }
+
+            // 1. Eliminar reparaciones de las órdenes finalizadas
+            dao.eliminarReparacionesDeOrdenes(t.getIdTecnico());
+
+            // 2. Eliminar órdenes finalizadas
+            dao.eliminarOrdenesFinalizada(t.getIdTecnico());
+
+            // 3. Eliminar usuario vinculado
             Usuario u = usuarioDAO.buscarPorIdTecnico(t.getIdTecnico());
             if (u != null) {
                 usuarioDAO.eliminar(u.getIdUsuario());
             }
+
+            // 4. Eliminar técnico
             dao.eliminar(t.getIdTecnico());
             cargarLista();
+
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Eliminado", "Técnico y usuario vinculado eliminados."));
+                    new FacesMessage(FacesMessage.SEVERITY_INFO,
+                            "Eliminado",
+                            "Técnico, usuario, órdenes y reparaciones eliminados correctamente."));
+
         } catch (Exception e) {
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                            "Error", e.getMessage()));
         }
     }
+
 
     public List<Tecnico> getLista() {
         if (lista == null) {

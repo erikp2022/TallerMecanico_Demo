@@ -10,10 +10,7 @@ import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Named;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 @Named("usuarioBean")
@@ -80,9 +77,6 @@ public class UsuarioBean implements Serializable {
             nuevo.setCorreo(nuevo.getCorreo().trim().toLowerCase());
             nuevo.setIdTecnico(null);
             dao.insertar(nuevo);
-            if (nuevo.getIdTecnico() != null && nuevo.getIdTecnico() == 0) {
-                nuevo.setIdTecnico(null);
-            }
             cargarLista();
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_INFO, "Guardado", "Usuario administrador creado."));
@@ -112,20 +106,20 @@ public class UsuarioBean implements Serializable {
 
     public void actualizar() {
         try {
-            if (seleccionado == null) {
-                return;
-            }
+            if (seleccionado == null) return;
+
             if (seleccionado.getNombre() == null || seleccionado.getNombre().isBlank()
                     || seleccionado.getCorreo() == null || seleccionado.getCorreo().isBlank()) {
                 FacesContext.getCurrentInstance().addMessage(null,
                         new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación", "Complete los campos obligatorios."));
                 return;
             }
+
+            // Mantener contraseña actual si no se escribe una nueva
             String passNueva = seleccionado.getContrasena() != null ? seleccionado.getContrasena().trim() : "";
             if (passNueva.isEmpty()) {
                 Usuario existente = dao.buscarPorId(seleccionado.getIdUsuario());
-                if (existente == null || existente.getContrasena() == null
-                        || existente.getContrasena().isBlank()) {
+                if (existente == null || existente.getContrasena() == null || existente.getContrasena().isBlank()) {
                     FacesContext.getCurrentInstance().addMessage(null,
                             new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación",
                                     "Indique una contraseña o vuelva a cargar el usuario."));
@@ -135,86 +129,90 @@ public class UsuarioBean implements Serializable {
             } else {
                 seleccionado.setContrasena(passNueva);
             }
+
             if (!EMAIL.matcher(seleccionado.getCorreo().trim()).matches()) {
                 FacesContext.getCurrentInstance().addMessage(null,
                         new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación", "Formato de correo no válido."));
                 return;
             }
+
             String rol = seleccionado.getRol() != null ? seleccionado.getRol().trim() : "";
             if (!"admin".equalsIgnoreCase(rol) && !"tecnico".equalsIgnoreCase(rol)) {
                 FacesContext.getCurrentInstance().addMessage(null,
                         new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación", "Rol no válido."));
                 return;
             }
-            if ("tecnico".equalsIgnoreCase(rol) && seleccionado.getIdTecnico() == null) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación", "Debe vincular un técnico a la cuenta."));
-                return;
-            }
+
+            // Si cambia a admin, limpiar id_tecnico
             if ("admin".equalsIgnoreCase(rol)) {
                 seleccionado.setIdTecnico(null);
             }
+
             if (dao.existeCorreo(seleccionado.getCorreo().trim(), seleccionado.getIdUsuario())) {
                 FacesContext.getCurrentInstance().addMessage(null,
                         new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación", "Ya existe otro usuario con ese correo."));
                 return;
             }
+
             seleccionado.setCorreo(seleccionado.getCorreo().trim().toLowerCase());
             dao.actualizar(seleccionado);
-            if ("tecnico".equalsIgnoreCase(rol) && seleccionado.getIdTecnico() != null) {
-                Tecnico t = tecnicoDAO.buscarPorId(seleccionado.getIdTecnico());
-                if (t != null) {
-                    t.setEstado(seleccionado.getEstado());
-                    tecnicoDAO.actualizar(t);
-                }
-            }
             cargarLista();
             seleccionado.setContrasena(null);
+
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_INFO, "Actualizado", "Usuario modificado."));
+
         } catch (Exception e) {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
-        }
-    }
-
-    /**
-     * Técnicos que pueden vincularse a un usuario (excluye ids ya usados por otro usuario).
-     */
-    public List<Tecnico> getTecnicosDisponiblesVinculacion() {
-        try {
-            List<Tecnico> todos = tecnicoDAO.listarTodos();
-            List<Usuario> usus = dao.listarTodos();
-            Set<Integer> ocupados = new HashSet<>();
-            for (Usuario u : usus) {
-                if (u.getIdTecnico() != null
-                        && (seleccionado == null || !u.getIdUsuario().equals(seleccionado.getIdUsuario()))) {
-                    ocupados.add(u.getIdTecnico());
-                }
-            }
-            List<Tecnico> out = new ArrayList<>();
-            for (Tecnico t : todos) {
-                if (!ocupados.contains(t.getIdTecnico())
-                        || (seleccionado != null && seleccionado.getIdTecnico() != null
-                        && seleccionado.getIdTecnico().equals(t.getIdTecnico()))) {
-                    out.add(t);
-                }
-            }
-            return out;
-        } catch (Exception e) {
-            return List.of();
         }
     }
 
     public void eliminar(Usuario u) {
         try {
+            // Evitar que el usuario elimine su propia cuenta
+            Usuario sesion = (Usuario) FacesContext.getCurrentInstance()
+                    .getExternalContext().getSessionMap().get("usuario");
+            if (sesion != null && sesion.getIdUsuario().equals(u.getIdUsuario())) {
+                FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage(FacesMessage.SEVERITY_WARN,
+                                "Acción no permitida",
+                                "No puedes eliminar tu propia cuenta mientras estás conectado."));
+                return;
+            }
+
+            // Si es técnico, verificar y limpiar sus órdenes
+            if ("tecnico".equalsIgnoreCase(u.getRol()) && u.getIdTecnico() != null) {
+
+                // Bloquear si tiene órdenes activas
+                if (dao.tecnicoTieneOrdenesActivas(u.getIdTecnico())) {
+                    FacesContext.getCurrentInstance().addMessage(null,
+                            new FacesMessage(FacesMessage.SEVERITY_WARN,
+                                    "No se puede eliminar",
+                                    "El técnico vinculado tiene órdenes pendientes o en proceso. " +
+                                            "Finalícelas antes de eliminar."));
+                    return;
+                }
+
+                // Eliminar reparaciones y órdenes finalizadas
+                dao.eliminarOrdenesYReparacionesFinalizadas(u.getIdTecnico());
+
+                // Eliminar el técnico vinculado
+                tecnicoDAO.eliminar(u.getIdTecnico());
+            }
+
+            // Eliminar el usuario
             dao.eliminar(u.getIdUsuario());
             cargarLista();
+
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Eliminado", "Usuario eliminado."));
+                    new FacesMessage(FacesMessage.SEVERITY_INFO,
+                            "Eliminado", "Usuario eliminado correctamente."));
+
         } catch (Exception e) {
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                            "Error", e.getMessage()));
         }
     }
 
@@ -223,9 +221,7 @@ public class UsuarioBean implements Serializable {
     }
 
     private static void normalizarEstadoCuenta(Usuario x) {
-        if (x.getEstado() == null) {
-            return;
-        }
+        if (x.getEstado() == null) return;
         String e = x.getEstado().trim();
         if ("activo".equalsIgnoreCase(e) || "1".equals(e)) {
             x.setEstado("Activo");
@@ -234,15 +230,8 @@ public class UsuarioBean implements Serializable {
         }
     }
 
-    public boolean isMostrarSelectTecnico() {
-        return seleccionado != null && seleccionado.getRol() != null
-                && "tecnico".equalsIgnoreCase(seleccionado.getRol().trim());
-    }
-
     public List<Usuario> getLista() {
-        if (lista == null) {
-            cargarLista();
-        }
+        if (lista == null) cargarLista();
         return lista;
     }
 

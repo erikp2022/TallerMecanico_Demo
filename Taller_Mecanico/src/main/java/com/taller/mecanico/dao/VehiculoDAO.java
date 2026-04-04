@@ -105,28 +105,32 @@ public class VehiculoDAO {
         }
     }
 
-    /**
-     * Indica si ya existe un vehículo con la misma placa (comparación sin distinguir mayúsculas).
-     *
-     * @param exceptIdVehiculo si no es null, se excluye ese id (útil al editar)
-     */
+    /** Verifica si el vehículo tiene órdenes de trabajo registradas */
+    public boolean tieneOrdenesAsociadas(int idVehiculo) throws SQLException {
+        String sql = "SELECT COUNT(*) AS n FROM ordenes_trabajo WHERE id_vehiculo = ?";
+        try (Connection c = Conexion.obtenerConexion();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, idVehiculo);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("n") > 0;
+                }
+            }
+        }
+        return false;
+    }
+
     public boolean existePlaca(String placa, Integer exceptIdVehiculo) throws SQLException {
         String normalizada = placa != null ? placa.trim().toUpperCase() : "";
-        if (normalizada.isEmpty()) {
-            return false;
-        }
+        if (normalizada.isEmpty()) return false;
         String sql = "SELECT COUNT(*) AS n FROM vehiculos WHERE UCase(Trim(placa)) = ?"
                 + (exceptIdVehiculo != null ? " AND id_vehiculo <> ?" : "");
         try (Connection c = Conexion.obtenerConexion();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, normalizada);
-            if (exceptIdVehiculo != null) {
-                ps.setInt(2, exceptIdVehiculo);
-            }
+            if (exceptIdVehiculo != null) ps.setInt(2, exceptIdVehiculo);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("n") > 0;
-                }
+                if (rs.next()) return rs.getInt("n") > 0;
             }
         }
         return false;

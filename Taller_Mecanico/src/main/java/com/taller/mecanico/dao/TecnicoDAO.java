@@ -105,6 +105,42 @@ public class TecnicoDAO {
         }
     }
 
+    // Elimina reparaciones de las órdenes finalizadas del técnico
+    public void eliminarReparacionesDeOrdenes(int idTecnico) throws SQLException {
+        String sql = "DELETE FROM reparaciones WHERE id_orden IN " +
+                "(SELECT id_orden FROM ordenes_trabajo " +
+                "WHERE id_tecnico = ? AND estado = 'Finalizado')";
+        try (Connection c = Conexion.obtenerConexion();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, idTecnico);
+            ps.executeUpdate();
+        }
+    }
+
+    // Verifica si tiene órdenes activas (pendiente o en proceso)
+    public boolean tieneOrdenesActivas(int idTecnico) throws SQLException {
+        String sql = "SELECT COUNT(*) AS n FROM ordenes_trabajo " +
+                "WHERE id_tecnico = ? AND estado IN ('Pendiente', 'En proceso')";
+        try (Connection c = Conexion.obtenerConexion();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, idTecnico);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt("n") > 0;
+            }
+        }
+        return false;
+    }
+
+    // Elimina todas las órdenes finalizadas del técnico
+    public void eliminarOrdenesFinalizada(int idTecnico) throws SQLException {
+        String sql = "DELETE FROM ordenes_trabajo WHERE id_tecnico = ? AND estado = 'Finalizado'";
+        try (Connection c = Conexion.obtenerConexion();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, idTecnico);
+            ps.executeUpdate();
+        }
+    }
+
     public boolean existeCorreo(String correo, Integer exceptIdTecnico) throws SQLException {
         String sql = "SELECT COUNT(*) AS n FROM tecnicos WHERE correo = ?"
                 + (exceptIdTecnico != null ? " AND id_tecnico <> ?" : "");

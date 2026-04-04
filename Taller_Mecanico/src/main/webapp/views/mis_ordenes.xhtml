@@ -11,6 +11,7 @@
         <f:metadata>
             <f:viewAction action="#{misOrdenesBean.initPagina}"/>
         </f:metadata>
+
         <h:form id="formBarMis" prependId="false">
             <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
                 <div>
@@ -63,7 +64,7 @@
                         <p:column headerText="Estado">
                             <span class="#{misOrdenesBean.claseBadgeEstado(o.estado)}"><h:outputText value="#{o.estado}"/></span>
                         </p:column>
-                        <p:column headerText="Acciones" width="220">
+                        <p:column headerText="Acciones" width="120">
                             <div class="btn-group btn-group-sm">
                                 <p:commandButton icon="pi pi-pencil" title="Estado y descripción" process="@this"
                                                  update=":formDlgEditMiOrden"
@@ -81,24 +82,26 @@
         </h:form>
 
         <h:form id="formDlgEditMiOrden">
-            <p:dialog header="Actualizar orden" widgetVar="dlgEditMiOrden" modal="true" resizable="false" draggable="false"
-                      closable="true" closeOnEscape="true" responsive="true" blockScroll="true"
+            <p:dialog header="Actualizar progreso" widgetVar="dlgEditMiOrden"
+                      modal="true" resizable="false" responsive="true"
                       styleClass="rounded-3 shadow taller-dialog-md">
-                <p:panelGrid columns="2" rendered="#{misOrdenesBean.ordenEdicion != null}" styleClass="ui-fluid taller-dialog-grid">
-                    <p:outputLabel value="Estado" styleClass="form-label"/>
-                    <p:selectOneMenu value="#{misOrdenesBean.ordenEdicion.estado}" styleClass="w-100" required="true">
+                <p:panelGrid columns="2" rendered="#{misOrdenesBean.ordenEdicion != null}"
+                             styleClass="ui-fluid taller-dialog-grid">
+                    <p:outputLabel value="Estado Actual" styleClass="form-label font-bold"/>
+                    <p:selectOneMenu value="#{misOrdenesBean.ordenEdicion.estado}" required="true">
                         <f:selectItems value="#{misOrdenesBean.estadosOrden}"/>
                     </p:selectOneMenu>
-                    <p:outputLabel value="Descripción" styleClass="form-label"/>
-                    <p:inputTextarea value="#{misOrdenesBean.ordenEdicion.descripcion}" rows="4" styleClass="form-control"/>
+                    <p:outputLabel value="Notas de Trabajo" styleClass="form-label font-bold"/>
+                    <p:inputTextarea value="#{misOrdenesBean.ordenEdicion.descripcion}"
+                                     rows="4" styleClass="form-control"
+                                     placeholder="Actualice el progreso..."/>
                 </p:panelGrid>
                 <f:facet name="footer">
-                    <div class="d-flex justify-content-end gap-2 flex-wrap w-100">
-                        <p:commandButton type="button" value="Cancelar" icon="pi pi-times"
-                                         onclick="PF('dlgEditMiOrden').hide(); return false;"
+                    <div class="d-flex justify-content-end gap-2">
+                        <p:commandButton type="button" value="Cancelar" onclick="PF('dlgEditMiOrden').hide();"
                                          styleClass="btn btn-outline-secondary"/>
                         <p:commandButton value="Guardar" action="#{misOrdenesBean.guardarOrdenTecnico}"
-                                         update=":formTablaMis :growl formDlgEditMiOrden"
+                                         update=":formTablaMis :growl"
                                          oncomplete="if(!args.validationFailed) PF('dlgEditMiOrden').hide()"
                                          styleClass="btn btn-primary" icon="pi pi-check"/>
                     </div>
@@ -107,58 +110,47 @@
         </h:form>
 
         <h:form id="formDlgReparMis">
-            <p:dialog id="dlgReparMisW" header="Reparaciones de la orden"
-                      widgetVar="dlgReparMis" modal="true" resizable="false" draggable="false"
-                      closable="true" closeOnEscape="true" responsive="true" blockScroll="true"
+            <p:dialog header="Detalle de Reparaciones" widgetVar="dlgReparMis"
+                      modal="true" resizable="false" responsive="true"
                       styleClass="rounded-3 shadow taller-dialog-lg">
-                <h:panelGroup layout="block" styleClass="small text-muted mb-2" rendered="#{misOrdenesBean.ordenReparaciones != null}">
-                    Orden #<h:outputText value="#{misOrdenesBean.ordenReparaciones.idOrden}"/>
-                </h:panelGroup>
-                <p:dataTable value="#{misOrdenesBean.reparacionesOrden}" var="r" emptyMessage="Sin reparaciones"
-                             reflow="true" styleClass="mb-3"
-                             tableStyleClass="table table-sm table-striped align-middle mb-0">
+                <p:dataTable value="#{misOrdenesBean.reparacionesOrden}" var="r"
+                             emptyMessage="No hay reparaciones registradas."
+                             reflow="true" tableStyleClass="table table-sm align-middle">
                     <p:column headerText="Descripción"><h:outputText value="#{r.descripcion}"/></p:column>
-                    <p:column headerText="Estado" width="140">
+                    <p:column headerText="Estado" width="120">
                         <span class="#{misOrdenesBean.claseBadgeEstado(r.estado)}"><h:outputText value="#{r.estado}"/></span>
                     </p:column>
-                    <p:column headerText="" width="100">
+                    <p:column headerText="" width="50">
                         <p:commandButton icon="pi pi-pencil" process="@this" update=":formDlgEditRepMis"
                                          actionListener="#{misOrdenesBean.prepararEditarReparacion(r)}"
-                                         oncomplete="PF('dlgEditRepMis').show()" styleClass="btn btn-sm btn-outline-primary"/>
+                                         oncomplete="PF('dlgEditRepMis').show()"
+                                         styleClass="btn btn-sm btn-outline-primary"/>
                     </p:column>
                 </p:dataTable>
                 <f:facet name="footer">
-                    <div class="d-flex justify-content-end w-100">
-                        <p:commandButton type="button" value="Cerrar" icon="pi pi-times"
-                                         onclick="PF('dlgReparMis').hide(); return false;"
-                                         styleClass="btn btn-secondary"/>
-                    </div>
+                    <p:commandButton type="button" value="Cerrar" onclick="PF('dlgReparMis').hide();" styleClass="btn btn-secondary"/>
                 </f:facet>
             </p:dialog>
         </h:form>
 
         <h:form id="formDlgEditRepMis">
-            <p:dialog header="Editar reparación" widgetVar="dlgEditRepMis" modal="true" resizable="false" draggable="false"
-                      closable="true" closeOnEscape="true" responsive="true" blockScroll="true"
-                      styleClass="rounded-3 shadow taller-dialog-sm">
+            <p:dialog header="Editar reparación" widgetVar="dlgEditRepMis" modal="true"
+                      resizable="false" styleClass="rounded-3 shadow taller-dialog-sm">
                 <p:panelGrid columns="2" rendered="#{misOrdenesBean.reparacionEdicion != null}" styleClass="ui-fluid taller-dialog-grid">
-                    <p:outputLabel value="Estado" styleClass="form-label"/>
-                    <p:selectOneMenu value="#{misOrdenesBean.reparacionEdicion.estado}" styleClass="w-100" required="true">
+                    <p:outputLabel value="Estado" styleClass="form-label font-bold"/>
+                    <p:selectOneMenu value="#{misOrdenesBean.reparacionEdicion.estado}" required="true">
                         <f:selectItems value="#{misOrdenesBean.estadosOrden}"/>
                     </p:selectOneMenu>
-                    <p:outputLabel value="Descripción" styleClass="form-label"/>
-                    <p:inputTextarea value="#{misOrdenesBean.reparacionEdicion.descripcion}" rows="4" required="true"
-                                     styleClass="form-control"/>
+                    <p:outputLabel value="Descripción" styleClass="form-label font-bold"/>
+                    <p:inputTextarea value="#{misOrdenesBean.reparacionEdicion.descripcion}" rows="3" required="true"/>
                 </p:panelGrid>
                 <f:facet name="footer">
-                    <div class="d-flex justify-content-end gap-2 flex-wrap w-100">
-                        <p:commandButton type="button" value="Cancelar" icon="pi pi-times"
-                                         onclick="PF('dlgEditRepMis').hide(); return false;"
-                                         styleClass="btn btn-outline-secondary"/>
+                    <div class="d-flex justify-content-end gap-2">
+                        <p:commandButton type="button" value="Cancelar" onclick="PF('dlgEditRepMis').hide();" styleClass="btn btn-outline-secondary"/>
                         <p:commandButton value="Guardar" action="#{misOrdenesBean.guardarReparacionTecnico}"
-                                         update=":formDlgReparMis :formTablaMis :growl formDlgEditRepMis"
+                                         update=":formDlgReparMis :growl"
                                          oncomplete="if(!args.validationFailed) PF('dlgEditRepMis').hide()"
-                                         styleClass="btn btn-primary" icon="pi pi-check"/>
+                                         styleClass="btn btn-primary"/>
                     </div>
                 </f:facet>
             </p:dialog>

@@ -11,14 +11,16 @@
         <f:metadata>
             <f:viewAction action="#{loginBean.exigirAdmin}"/>
         </f:metadata>
+
         <h:panelGroup rendered="#{loginBean.admin}">
             <h:form id="formBarVeh" prependId="false">
                 <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
                     <div>
                         <h2 class="h3 fw-bold text-primary mb-1">Vehículos</h2>
-                        <p class="text-muted small mb-0">Flota vinculada a clientes</p>
+                        <p class="text-muted small mb-0">Gestión de flota vinculada a clientes</p>
                     </div>
-                    <p:commandButton value="Nuevo vehículo" icon="pi pi-plus" actionListener="#{vehiculoBean.prepararNuevo}"
+                    <p:commandButton value="Nuevo vehículo" icon="pi pi-plus"
+                                     actionListener="#{vehiculoBean.prepararNuevo}"
                                      update=":formDlgNuevoVeh" oncomplete="PF('dlgNuevoVeh').show()"
                                      styleClass="btn btn-primary rounded-3 shadow-sm"/>
                 </div>
@@ -28,61 +30,81 @@
                 <div class="card border-0 shadow-sm">
                     <div class="table-responsive rounded-3">
                         <p:dataTable value="#{vehiculoBean.lista}" var="v" paginator="true" rows="10" reflow="true"
-                                     emptyMessage="Sin registros" tableStyleClass="table table-hover align-middle mb-0">
+                                     emptyMessage="Sin registros de vehículos"
+                                     tableStyleClass="table table-hover align-middle mb-0">
+
                             <p:column headerText="ID" width="70"><h:outputText value="#{v.idVehiculo}"/></p:column>
-                            <p:column headerText="Placa"><h:outputText value="#{v.placa}"/></p:column>
+                            <p:column headerText="Placa" width="100"><h:outputText value="#{v.placa}"/></p:column>
                             <p:column headerText="Marca"><h:outputText value="#{v.marca}"/></p:column>
                             <p:column headerText="Modelo"><h:outputText value="#{v.modelo}"/></p:column>
-                            <p:column headerText="Año"><h:outputText value="#{v.anio}"/></p:column>
-                            <p:column headerText="Cliente"><h:outputText value="#{v.nombreCliente}"/></p:column>
-                            <p:column headerText="Acciones" width="180">
+                            <p:column headerText="Año" width="80"><h:outputText value="#{v.anio}"/></p:column>
+                            <p:column headerText="Dueño / Cliente"><h:outputText value="#{v.nombreCliente}"/></p:column>
+
+                            <p:column headerText="Acciones" width="120">
                                 <div class="btn-group btn-group-sm">
                                     <p:commandButton icon="pi pi-pencil" process="@this" update=":formDlgEditVeh"
                                                      actionListener="#{vehiculoBean.prepararEditar(v)}"
-                                                     oncomplete="PF('dlgEditVeh').show()" styleClass="btn btn-outline-primary"/>
+                                                     oncomplete="PF('dlgEditVeh').show()"
+                                                     styleClass="btn btn-outline-primary"/>
+
                                     <p:commandButton icon="pi pi-trash" process="@this" action="#{vehiculoBean.eliminar(v)}"
                                                      update=":formTablaVeh :growl" styleClass="btn btn-outline-danger">
-                                        <p:confirm header="Confirmar" message="¿Eliminar vehículo?"/>
+                                        <p:confirm header="Eliminar Vehículo"
+                                                   message="¿Desea borrar este vehículo del sistema?"
+                                                   icon="pi pi-exclamation-triangle" />
                                     </p:commandButton>
                                 </div>
                             </p:column>
                         </p:dataTable>
                     </div>
                 </div>
-                <p:confirmDialog global="true" styleClass="taller-pf-confirm rounded-3 shadow"/>
+
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350px">
+                    <div class="d-flex justify-content-end gap-2 mt-2">
+                        <p:commandButton value="No" type="button"
+                                         styleClass="ui-confirmdialog-no btn btn-outline-secondary" icon="pi pi-times" />
+                        <p:commandButton value="Sí, eliminar" type="button"
+                                         styleClass="ui-confirmdialog-yes btn btn-danger" icon="pi pi-trash" />
+                    </div>
+                </p:confirmDialog>
             </h:form>
 
             <h:form id="formDlgNuevoVeh">
-                <p:dialog header="Nuevo vehículo" widgetVar="dlgNuevoVeh" modal="true" resizable="false" draggable="false"
-                          closable="true" closeOnEscape="true" responsive="true" blockScroll="true"
+                <p:dialog header="Registrar nuevo vehículo" widgetVar="dlgNuevoVeh" modal="true"
+                          resizable="false" draggable="false" closable="true" responsive="true"
                           styleClass="rounded-3 shadow taller-dialog-md">
+
                     <p:panelGrid columns="2" rendered="#{vehiculoBean.nuevo != null}" styleClass="ui-fluid taller-dialog-grid">
-                        <p:outputLabel value="Placa" styleClass="form-label"/>
-                        <p:inputText value="#{vehiculoBean.nuevo.placa}" required="true" maxlength="7" styleClass="form-control"
-                                     placeholder="Ej. HBU2574"
-                                     validatorMessage="Formato: 3 letras y 4 números (ej. HBU2574)">
+                        <p:outputLabel value="Placa" styleClass="form-label font-bold"/>
+                        <p:inputText value="#{vehiculoBean.nuevo.placa}" required="true" maxlength="7"
+                                     placeholder="Ej. HBU2574">
                             <f:validateRegex pattern="^[A-Za-z]{3}[0-9]{4}$"/>
                         </p:inputText>
-                        <p:outputLabel value="Marca" styleClass="form-label"/>
-                        <p:inputText value="#{vehiculoBean.nuevo.marca}" styleClass="form-control"/>
-                        <p:outputLabel value="Modelo" styleClass="form-label"/>
-                        <p:inputText value="#{vehiculoBean.nuevo.modelo}" styleClass="form-control"/>
-                        <p:outputLabel value="Año" styleClass="form-label"/>
-                        <p:inputNumber value="#{vehiculoBean.nuevo.anio}" minValue="1950" maxValue="2035"/>
-                        <p:outputLabel value="Cliente" styleClass="form-label"/>
-                        <p:selectOneMenu value="#{vehiculoBean.nuevo.idCliente}" styleClass="w-100" required="true"
-                                         requiredMessage="Seleccione cliente">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}"/>
+
+                        <p:outputLabel value="Marca" styleClass="form-label font-bold"/>
+                        <p:inputText value="#{vehiculoBean.nuevo.marca}"/>
+
+                        <p:outputLabel value="Modelo" styleClass="form-label font-bold"/>
+                        <p:inputText value="#{vehiculoBean.nuevo.modelo}"/>
+
+                        <p:outputLabel value="Año" styleClass="form-label font-bold"/>
+                        <p:inputNumber value="#{vehiculoBean.nuevo.anio}" minValue="1950" maxValue="2035" decimalPlaces="0"/>
+
+                        <p:outputLabel value="Dueño (Cliente)" styleClass="form-label font-bold"/>
+                        <p:selectOneMenu value="#{vehiculoBean.nuevo.idCliente}" required="true"
+                                         requiredMessage="Debe asignar un cliente">
+                            <f:selectItem itemLabel="Seleccione un cliente..." itemValue="#{null}"/>
                             <f:selectItems value="#{vehiculoBean.clientes}" var="cl"
                                            itemLabel="#{cl.nombre}" itemValue="#{cl.idCliente}"/>
                         </p:selectOneMenu>
                     </p:panelGrid>
+
                     <f:facet name="footer">
-                        <div class="d-flex justify-content-end gap-2 flex-wrap w-100">
-                            <p:commandButton type="button" value="Cancelar" icon="pi pi-times"
-                                             onclick="PF('dlgNuevoVeh').hide(); return false;"
-                                             styleClass="btn btn-outline-secondary"/>
-                            <p:commandButton value="Guardar" action="#{vehiculoBean.guardar}" update=":formTablaVeh :growl formDlgNuevoVeh"
+                        <div class="d-flex justify-content-end gap-2">
+                            <p:commandButton type="button" value="Cancelar" onclick="PF('dlgNuevoVeh').hide();"
+                                             styleClass="btn btn-outline-secondary" icon="pi pi-times"/>
+                            <p:commandButton value="Guardar" action="#{vehiculoBean.guardar}"
+                                             update=":formTablaVeh :growl formDlgNuevoVeh"
                                              oncomplete="if(!args.validationFailed) PF('dlgNuevoVeh').hide()"
                                              styleClass="btn btn-primary" icon="pi pi-check"/>
                         </div>
@@ -91,37 +113,40 @@
             </h:form>
 
             <h:form id="formDlgEditVeh">
-                <p:dialog header="Editar vehículo" widgetVar="dlgEditVeh" modal="true" resizable="false" draggable="false"
-                          closable="true" closeOnEscape="true" responsive="true" blockScroll="true"
+                <p:dialog header="Editar información del vehículo" widgetVar="dlgEditVeh" modal="true"
+                          resizable="false" draggable="false" responsive="true"
                           styleClass="rounded-3 shadow taller-dialog-md">
+
                     <p:panelGrid columns="2" rendered="#{vehiculoBean.seleccionado != null}" styleClass="ui-fluid taller-dialog-grid">
-                        <p:outputLabel value="Placa" styleClass="form-label"/>
-                        <p:inputText value="#{vehiculoBean.seleccionado.placa}" required="true" maxlength="7" styleClass="form-control"
-                                     placeholder="Ej. HBU2574"
-                                     validatorMessage="Formato: 3 letras y 4 números (ej. HBU2574)">
+                        <p:outputLabel value="Placa" styleClass="form-label font-bold"/>
+                        <p:inputText value="#{vehiculoBean.seleccionado.placa}" required="true" maxlength="7">
                             <f:validateRegex pattern="^[A-Za-z]{3}[0-9]{4}$"/>
                         </p:inputText>
-                        <p:outputLabel value="Marca" styleClass="form-label"/>
-                        <p:inputText value="#{vehiculoBean.seleccionado.marca}" styleClass="form-control"/>
-                        <p:outputLabel value="Modelo" styleClass="form-label"/>
-                        <p:inputText value="#{vehiculoBean.seleccionado.modelo}" styleClass="form-control"/>
-                        <p:outputLabel value="Año" styleClass="form-label"/>
-                        <p:inputNumber value="#{vehiculoBean.seleccionado.anio}" minValue="1950" maxValue="2035"/>
-                        <p:outputLabel value="Cliente" styleClass="form-label"/>
-                        <p:selectOneMenu value="#{vehiculoBean.seleccionado.idCliente}" styleClass="w-100" required="true">
-                            <f:selectItem itemLabel="Seleccione..." itemValue="#{null}"/>
+
+                        <p:outputLabel value="Marca" styleClass="form-label font-bold"/>
+                        <p:inputText value="#{vehiculoBean.seleccionado.marca}"/>
+
+                        <p:outputLabel value="Modelo" styleClass="form-label font-bold"/>
+                        <p:inputText value="#{vehiculoBean.seleccionado.modelo}"/>
+
+                        <p:outputLabel value="Año" styleClass="form-label font-bold"/>
+                        <p:inputNumber value="#{vehiculoBean.seleccionado.anio}" minValue="1950" maxValue="2035" decimalPlaces="0"/>
+
+                        <p:outputLabel value="Cliente" styleClass="form-label font-bold"/>
+                        <p:selectOneMenu value="#{vehiculoBean.seleccionado.idCliente}" required="true">
                             <f:selectItems value="#{vehiculoBean.clientes}" var="cl"
                                            itemLabel="#{cl.nombre}" itemValue="#{cl.idCliente}"/>
                         </p:selectOneMenu>
                     </p:panelGrid>
+
                     <f:facet name="footer">
-                        <div class="d-flex justify-content-end gap-2 flex-wrap w-100">
-                            <p:commandButton type="button" value="Cancelar" icon="pi pi-times"
-                                             onclick="PF('dlgEditVeh').hide(); return false;"
-                                             styleClass="btn btn-outline-secondary"/>
-                            <p:commandButton value="Actualizar" action="#{vehiculoBean.actualizar}" update=":formTablaVeh :growl formDlgEditVeh"
+                        <div class="d-flex justify-content-end gap-2">
+                            <p:commandButton type="button" value="Cancelar" onclick="PF('dlgEditVeh').hide();"
+                                             styleClass="btn btn-outline-secondary" icon="pi pi-times"/>
+                            <p:commandButton value="Actualizar" action="#{vehiculoBean.actualizar}"
+                                             update=":formTablaVeh :growl"
                                              oncomplete="if(!args.validationFailed) PF('dlgEditVeh').hide()"
-                                             styleClass="btn btn-primary" icon="pi pi-check"/>
+                                             styleClass="btn btn-primary" icon="pi pi-save"/>
                         </div>
                     </f:facet>
                 </p:dialog>
@@ -129,7 +154,10 @@
         </h:panelGroup>
 
         <h:panelGroup layout="block" styleClass="alert alert-warning border-0 shadow-sm" rendered="#{not loginBean.admin}">
-            <i class="bi bi-shield-exclamation me-2"></i>No tiene permisos para esta sección.
+            <div class="d-flex align-items-center">
+                <i class="pi pi-shield me-2 fs-4"></i>
+                <span>No tiene permisos administrativos para gestionar la flota de vehículos.</span>
+            </div>
         </h:panelGroup>
     </ui:define>
 </ui:composition>

@@ -18,11 +18,11 @@ import java.util.regex.Pattern;
 public class VehiculoBean implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
     private static final Pattern PLACA = Pattern.compile("^[A-Za-z]{3}[0-9]{4}$");
 
     private final VehiculoDAO dao = new VehiculoDAO();
     private final ClienteDAO clienteDAO = new ClienteDAO();
+
     private List<Vehiculo> lista;
     private List<Cliente> clientes;
     private Vehiculo seleccionado;
@@ -33,139 +33,96 @@ public class VehiculoBean implements Serializable {
             lista = dao.listarTodos();
             clientes = clienteDAO.listarTodos();
         } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
+            enviarError("Error al cargar lista", e.getMessage());
         }
     }
 
     public void prepararNuevo() {
         nuevo = new Vehiculo();
-        if (clientes == null) {
-            try {
-                clientes = clienteDAO.listarTodos();
-            } catch (Exception ignored) {
-            }
-        }
     }
 
     public void guardar() {
         try {
             if (nuevo.getPlaca() == null || nuevo.getPlaca().isBlank() || nuevo.getIdCliente() == null) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación", "Placa y cliente son obligatorios."));
+                enviarAviso("Validación", "Placa y cliente son obligatorios.");
                 return;
             }
             String pl = nuevo.getPlaca().trim().toUpperCase();
             if (!PLACA.matcher(pl).matches()) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación",
-                                "La placa debe tener 3 letras y 4 números (ej. HBU2574)."));
+                enviarAviso("Validación", "Formato inválido (ej. HBU2574).");
+                return;
+            }
+            if (dao.existePlaca(pl, null)) {
+                enviarAviso("Validación", "La placa ya existe en el sistema.");
                 return;
             }
             nuevo.setPlaca(pl);
-            if (dao.existePlaca(pl, null)) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación",
-                                "Ya existe un vehículo con esa placa."));
-                return;
-            }
             dao.insertar(nuevo);
             cargarLista();
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Guardado", "Vehículo creado."));
+            enviarInfo("Guardado", "Vehículo registrado correctamente.");
         } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
+            enviarError("Error al guardar", e.getMessage());
         }
     }
 
     public void prepararEditar(Vehiculo v) {
         seleccionado = v;
-        if (clientes == null) {
-            try {
-                clientes = clienteDAO.listarTodos();
-            } catch (Exception ignored) {
-            }
-        }
     }
 
     public void actualizar() {
         try {
-            if (seleccionado == null) {
+            if (seleccionado == null) return;
+            String pl = seleccionado.getPlaca().trim().toUpperCase();
+            if (!PLACA.matcher(pl).matches()) {
+                enviarAviso("Validación", "Formato de placa inválido.");
                 return;
             }
-            if (seleccionado.getPlaca() != null) {
-                String pl = seleccionado.getPlaca().trim().toUpperCase();
-                if (!PLACA.matcher(pl).matches()) {
-                    FacesContext.getCurrentInstance().addMessage(null,
-                            new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación",
-                                    "La placa debe tener 3 letras y 4 números (ej. HBU2574)."));
-                    return;
-                }
-                seleccionado.setPlaca(pl);
-            }
-            if (dao.existePlaca(seleccionado.getPlaca(), seleccionado.getIdVehiculo())) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación",
-                                "Ya existe otro vehículo con esa placa."));
+            if (dao.existePlaca(pl, seleccionado.getIdVehiculo())) {
+                enviarAviso("Validación", "Otro vehículo ya usa esta placa.");
                 return;
             }
+            seleccionado.setPlaca(pl);
             dao.actualizar(seleccionado);
             cargarLista();
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Actualizado", "Vehículo modificado."));
+            enviarInfo("Actualizado", "Datos del vehículo modificados.");
         } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
+            enviarError("Error al actualizar", e.getMessage());
         }
     }
 
     public void eliminar(Vehiculo v) {
         try {
+            // VALIDACIÓN DE INTEGRIDAD
+            if (dao.tieneOrdenesAsociadas(v.getIdVehiculo())) {
+                enviarAviso("No se puede eliminar",
+                        "Este vehículo tiene órdenes de trabajo registradas. Elimine primero las órdenes.");
+                return;
+            }
+
             dao.eliminar(v.getIdVehiculo());
             cargarLista();
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Eliminado", "Vehículo eliminado."));
+            enviarInfo("Eliminado", "Vehículo borrado exitosamente.");
         } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
+            enviarError("Error al eliminar", e.getMessage());
         }
     }
 
-    public List<Vehiculo> getLista() {
-        if (lista == null) {
-            cargarLista();
-        }
-        return lista;
+    // Métodos de utilidad para mensajes
+    private void enviarInfo(String tit, String msg) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, tit, msg));
+    }
+    private void enviarAviso(String tit, String msg) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, tit, msg));
+    }
+    private void enviarError(String tit, String msg) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, tit, msg));
     }
 
-    public void setLista(List<Vehiculo> lista) {
-        this.lista = lista;
-    }
-
-    public List<Cliente> getClientes() {
-        if (clientes == null) {
-            try {
-                clientes = clienteDAO.listarTodos();
-            } catch (Exception ignored) {
-            }
-        }
-        return clientes;
-    }
-
-    public Vehiculo getSeleccionado() {
-        return seleccionado;
-    }
-
-    public void setSeleccionado(Vehiculo seleccionado) {
-        this.seleccionado = seleccionado;
-    }
-
-    public Vehiculo getNuevo() {
-        return nuevo;
-    }
-
-    public void setNuevo(Vehiculo nuevo) {
-        this.nuevo = nuevo;
-    }
+    // Getters y Setters
+    public List<Vehiculo> getLista() { if (lista == null) cargarLista(); return lista; }
+    public List<Cliente> getClientes() { if (clientes == null) cargarLista(); return clientes; }
+    public Vehiculo getSeleccionado() { return seleccionado; }
+    public void setSeleccionado(Vehiculo seleccionado) { this.seleccionado = seleccionado; }
+    public Vehiculo getNuevo() { return nuevo; }
+    public void setNuevo(Vehiculo nuevo) { this.nuevo = nuevo; }
 }

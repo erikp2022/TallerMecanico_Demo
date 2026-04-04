@@ -190,6 +190,8 @@ public class UsuarioDAO {
         }
     }
 
+
+
     public void eliminar(int idUsuario) throws SQLException {
         String sql = "DELETE FROM usuarios WHERE id_usuario = ?";
         try (Connection c = Conexion.obtenerConexion();
@@ -198,6 +200,44 @@ public class UsuarioDAO {
             ps.executeUpdate();
         }
     }
+
+    // Verifica si el usuario tiene rol técnico con órdenes activas
+    public boolean tecnicoTieneOrdenesActivas(int idTecnico) throws SQLException {
+        String sql = "SELECT COUNT(*) AS n FROM ordenes_trabajo " +
+                "WHERE id_tecnico = ? AND estado IN ('Pendiente', 'En proceso')";
+        try (Connection c = Conexion.obtenerConexion();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, idTecnico);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt("n") > 0;
+            }
+        }
+        return false;
+    }
+
+    // Elimina reparaciones y órdenes finalizadas del técnico vinculado
+    public void eliminarOrdenesYReparacionesFinalizadas(int idTecnico) throws SQLException {
+        // Primero reparaciones (hijas de órdenes)
+        String sqlRep = "DELETE FROM reparaciones WHERE id_orden IN " +
+                "(SELECT id_orden FROM ordenes_trabajo " +
+                "WHERE id_tecnico = ? AND estado = 'Finalizado')";
+        try (Connection c = Conexion.obtenerConexion();
+             PreparedStatement ps = c.prepareStatement(sqlRep)) {
+            ps.setInt(1, idTecnico);
+            ps.executeUpdate();
+        }
+        // Luego las órdenes finalizadas
+        String sqlOrd = "DELETE FROM ordenes_trabajo " +
+                "WHERE id_tecnico = ? AND estado = 'Finalizado'";
+        try (Connection c = Conexion.obtenerConexion();
+             PreparedStatement ps = c.prepareStatement(sqlOrd)) {
+            ps.setInt(1, idTecnico);
+            ps.executeUpdate();
+        }
+    }
+
+
+
 
     public int contar() throws SQLException {
         String sql = "SELECT COUNT(*) AS n FROM usuarios";

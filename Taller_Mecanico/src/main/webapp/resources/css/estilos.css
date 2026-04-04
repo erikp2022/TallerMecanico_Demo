@@ -1,106 +1,411 @@
-/* Complemento a Bootstrap 5.3 — Tema taller (azul oscuro, gris, blanco) */
+/* ============================================================
+   Taller Mecánico — Tema principal
+   Bootstrap 5.3 + PrimeFaces + Bootstrap Icons
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
-    --taller-primary: #0d1b2a;
+    --taller-primary:     #0d1b2a;
     --taller-primary-mid: #1b263b;
-    --taller-accent: #415a77;
-    --estado-pendiente: #ffc107;
-    --estado-proceso: #0d6efd;
-    --estado-finalizado: #198754;
+    --taller-accent:      #415a77;
+    --taller-accent-light:#778da9;
+    --taller-highlight:   #4a9eff;
+    --estado-pendiente:   #f59e0b;
+    --estado-proceso:     #3b82f6;
+    --estado-finalizado:  #10b981;
+    --sidebar-width:      240px;
 }
 
-/* ---------- Login ---------- */
+/* ============================================================
+   BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+body, body .ui-widget, body .ui-widget .ui-widget {
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 0.9rem;
+}
+
+/* ============================================================
+   LOGIN
+   ============================================================ */
+
+/* ── Fondo con imagen del taller ── */
 .login-page {
-    background: linear-gradient(145deg, #0d1b2a 0%, #1b263b 45%, #415a77 100%);
+    background:
+            linear-gradient(135deg,
+            rgba(5, 10, 18, 0.82) 0%,
+            rgba(13, 27, 42, 0.75) 50%,
+            rgba(27, 38, 59, 0.70) 100%),
+            url('#{request.contextPath}/resources/img/Taaller_Fondo.png') center center / cover no-repeat fixed;
+    min-height: 100vh;
 }
 
-.login-page .card {
-    backdrop-filter: blur(8px);
+/* ── Título principal blanco con sombra ── */
+.login-brand-title {
+    color: #ffffff !important;
+    font-weight: 800;
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.6);
 }
 
-/* ---------- Layout app ---------- */
+.login-brand-sub {
+    color: rgba(255,255,255,0.70) !important;
+    font-size: 0.9rem;
+}
+
+/* ── Ícono superior ── */
+.login-icon-wrap {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(6px);
+    border-radius: 1.25rem;
+    padding: 1rem;
+    display: inline-flex;
+    margin-bottom: 1rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.login-icon-wrap i {
+    color: #4a9eff;
+    font-size: 2.4rem;
+}
+
+/* ── Card negra semitransparente ── */
+.login-card {
+    background: rgba(8, 15, 26, 0.72) !important;
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    border-radius: 1.25rem !important;
+    box-shadow:
+            0 25px 60px rgba(0,0,0,0.5),
+            inset 0 1px 0 rgba(255,255,255,0.08) !important;
+}
+
+/* ── Título "Iniciar sesión" dentro del card ── */
+.login-card .login-heading {
+    color: #ffffff !important;
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: 0.01em;
+}
+
+/* ── Labels ── */
+.login-card .form-label {
+    color: rgba(255,255,255,0.65) !important;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* ── Inputs ── */
+.login-card .input-group-text {
+    background: rgba(255,255,255,0.06) !important;
+    border-color: rgba(255,255,255,0.15) !important;
+    color: rgba(255,255,255,0.5) !important;
+}
+
+.login-card .ui-inputfield,
+.login-card input.form-control,
+.login-card .ui-password input {
+    background: rgba(255,255,255,0.07) !important;
+    border-color: rgba(255,255,255,0.15) !important;
+    color: #ffffff !important;
+    caret-color: #4a9eff;
+}
+
+.login-card .ui-inputfield::placeholder,
+.login-card input::placeholder {
+    color: rgba(255,255,255,0.3) !important;
+}
+
+.login-card .ui-inputfield:focus,
+.login-card input:focus {
+    background: rgba(255,255,255,0.11) !important;
+    border-color: #4a9eff !important;
+    box-shadow: 0 0 0 3px rgba(74,158,255,0.2) !important;
+    outline: none !important;
+}
+
+/* ── Botón entrar ── */
+.login-card .btn-login {
+    background: linear-gradient(135deg, #1d6ef5 0%, #0d53d4 100%);
+    border: none;
+    border-radius: 0.65rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    padding: 0.7rem;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(29,110,245,0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+    width: 100%;
+}
+
+.login-card .btn-login:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(29,110,245,0.55);
+}
+
+.login-card .btn-login:active {
+    transform: translateY(0);
+}
+
+/* ── Footer del card ── */
+.login-card .login-footer {
+    background: rgba(255,255,255,0.04) !important;
+    border-top: 1px solid rgba(255,255,255,0.08) !important;
+    color: rgba(255,255,255,0.4) !important;
+    font-size: 0.78rem;
+    border-radius: 0 0 1.25rem 1.25rem;
+    padding: 0.85rem 1rem;
+    text-align: center;
+}
+
+/* ── Growl en login centrado ── */
+#formLogin .ui-growl {
+    position: fixed !important;
+    top: 1.5rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    right: auto !important;
+    min-width: 320px !important;
+    z-index: 9999 !important;
+}
+
+/* ============================================================
+   LAYOUT / SIDEBAR
+   ============================================================ */
 body.taller-body {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #f1f4f8;
 }
 
 .taller-sidebar {
-    background: linear-gradient(180deg, var(--taller-primary) 0%, #0a1219 100%);
+    background: linear-gradient(180deg, var(--taller-primary) 0%, #060d14 100%);
     min-height: 100vh;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.25);
+}
+
+.taller-main {
+    background: #f1f4f8;
+    min-height: 100vh;
+}
+
+/* ============================================================
+   SIDEBAR — NOMBRE DE USUARIO (antes salía negro, ilegible)
+   ============================================================ */
+.user-pill {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0.5rem;
+    padding: 0.45rem 0.75rem;
+    color: #fff !important;          /* ← fuerza blanco */
+    font-size: 0.82rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.user-pill i {
+    color: var(--taller-highlight);
+    font-size: 1rem;
+}
+
+.user-pill .badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 50rem;
+    background: rgba(255,255,255,0.15) !important;
+    color: #fff !important;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+/* REEMPLAZA con esto */
+.user-pill,
+.user-pill span,
+.user-pill * {
+    color: #fff !important;
+}
+
+/* ============================================================
+   SIDEBAR — NAVEGACIÓN
+   ============================================================ */
+.taller-sidebar .nav-link {
+    color: rgba(255,255,255,0.6) !important;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s, padding-left 0.15s;
+    border-radius: 0.5rem;
 }
 
 .taller-sidebar .nav-link:hover,
 .taller-sidebar .nav-link:focus {
-    background: rgba(255, 255, 255, 0.08) !important;
+    background: rgba(255,255,255,0.1) !important;
+    color: #fff !important;
+    padding-left: 1.1rem !important;
+}
+
+.taller-sidebar .nav-link i {
+    font-size: 1.05rem;
+    width: 1.3rem;
+    text-align: center;
+}
+
+/* Cerrar sesión */
+.taller-sidebar .nav-link.text-danger-emphasis {
+    color: #ff6b6b !important;
+    background: rgba(220,53,69,0.1) !important;
+}
+
+.taller-sidebar .nav-link.text-danger-emphasis:hover {
+    background: rgba(220,53,69,0.2) !important;
+    color: #ff4444 !important;
+}
+
+/* ============================================================
+   BRAND HEADER en sidebar
+   ============================================================ */
+.brand h1.h6 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
     color: #fff !important;
 }
 
-.taller-main {
-    background: #f8f9fa;
-    min-height: 100vh;
+.brand small {
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.45) !important;
 }
 
-/* ---------- Badges de estado ---------- */
+.brand .rounded-3.bg-white {
+    background: rgba(255,255,255,0.12) !important;
+    color: var(--taller-highlight) !important;
+}
+
+/* ============================================================
+   BADGES DE ESTADO (tabla órdenes)
+   ============================================================ */
 .badge-estado {
     display: inline-block;
-    padding: 0.35rem 0.65rem;
+    padding: 0.3rem 0.7rem;
     border-radius: 50rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
-.badge-pendiente { background: var(--estado-pendiente); color: #212529 !important; }
-.badge-proceso { background: var(--estado-proceso); }
-.badge-finalizado { background: var(--estado-finalizado); }
+.badge-pendiente  { background: #fef3c7; color: #92400e !important; border: 1px solid #fbbf24; }
+.badge-proceso    { background: #dbeafe; color: #1e40af !important; border: 1px solid #93c5fd; }
+.badge-finalizado { background: #d1fae5; color: #065f46 !important; border: 1px solid #6ee7b7; }
 
-/* ---------- Gráfico barras dashboard ---------- */
+/* ============================================================
+   CARDS Y TABLAS
+   ============================================================ */
+.card {
+    border-radius: 0.75rem !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07) !important;
+}
+
+/* Cabeceras de tabla PrimeFaces */
+body .ui-datatable thead th {
+    background: var(--taller-primary-mid) !important;
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: none !important;
+    padding: 0.85rem 1rem !important;
+}
+
+body .ui-datatable tbody tr {
+    transition: background 0.12s;
+}
+
+body .ui-datatable tbody tr:nth-child(even) {
+    background: rgba(0,0,0,0.018);
+}
+
+body .ui-datatable tbody tr:hover {
+    background: rgba(74,158,255,0.06) !important;
+}
+
+body .ui-datatable tbody td {
+    border-color: #e9ecef !important;
+    padding: 0.7rem 1rem !important;
+    vertical-align: middle;
+}
+
+/* Paginador */
+body .ui-paginator {
+    background: #fff !important;
+    border: 1px solid #dee2e6 !important;
+    border-top: none !important;
+    padding: 0.6rem !important;
+    border-radius: 0 0 0.75rem 0.75rem !important;
+}
+
+body .ui-paginator .ui-paginator-page.ui-state-active {
+    background: var(--taller-primary-mid) !important;
+    color: #fff !important;
+    border-radius: 0.375rem !important;
+}
+
+/* ============================================================
+   GRÁFICO BARRAS DASHBOARD
+   ============================================================ */
 .chart-bars {
     background: #fff;
     border-radius: 0.75rem;
-    padding: 1.25rem;
-    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    padding: 1.35rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    border: 1px solid rgba(0,0,0,0.05);
 }
 
-.chart-row { margin-bottom: 0.85rem; }
+.chart-row { margin-bottom: 1rem; }
+
 .chart-row .lbl {
     display: flex;
     justify-content: space-between;
-    font-size: 0.9rem;
-    margin-bottom: 0.35rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    color: #374151;
 }
+
 .chart-track {
     height: 10px;
-    background: #e9ecef;
+    background: #e5e7eb;
     border-radius: 6px;
     overflow: hidden;
 }
-.chart-fill { height: 100%; border-radius: 6px; transition: width 0.35s ease; }
-.fill-pendiente { background: var(--estado-pendiente); }
-.fill-proceso { background: var(--estado-proceso); }
-.fill-finalizado { background: var(--estado-finalizado); }
 
-/* ---------- PrimeFaces + Bootstrap ---------- */
-body .ui-widget,
-body .ui-widget .ui-widget {
-    font-family: inherit;
-    font-size: inherit;
-}
+.chart-fill { height: 100%; border-radius: 6px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+.fill-pendiente  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.fill-proceso    { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.fill-finalizado { background: linear-gradient(90deg, #10b981, #34d399); }
 
+/* ============================================================
+   PRIMEFACES + BOOTSTRAP — BOTONES
+   ============================================================ */
 body .ui-button.btn,
 body .ui-button.btn-primary,
 body a.ui-commandlink.nav-link {
-  box-shadow: none;
-  text-decoration: none !important;
-}
-
-body a.ui-commandlink.nav-link:hover {
-  text-decoration: none !important;
+    box-shadow: none;
+    text-decoration: none !important;
 }
 
 body .ui-button.btn-primary,
 body .ui-button.btn-primary.ui-state-hover {
-    background: var(--bs-primary) !important;
-    border-color: var(--bs-primary) !important;
+    background: #0d6efd !important;
+    border-color: #0d6efd !important;
     color: #fff !important;
 }
 
@@ -108,140 +413,218 @@ body .ui-button.ui-button-text-icon-left .ui-button-text {
     padding-left: 2rem;
 }
 
-/* Tablas PrimeFaces estilo Bootstrap */
-body .ui-datatable table {
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-body .ui-datatable thead th {
-    background: var(--taller-primary-mid) !important;
-    color: #fff !important;
-    font-weight: 600;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    border: none !important;
-    padding: 0.75rem 1rem !important;
-}
-
-body .ui-datatable tbody tr:nth-child(even) {
-    background: rgba(0, 0, 0, 0.02);
-}
-
-body .ui-datatable tbody td {
-    border-color: #e9ecef !important;
-    padding: 0.65rem 1rem !important;
-    vertical-align: middle;
-}
-
-body .ui-paginator {
-    background: #fff !important;
-    border: 1px solid #dee2e6 !important;
-    border-top: none !important;
-    padding: 0.5rem !important;
-    border-radius: 0 0 0.5rem 0.5rem;
-}
-
-/* Diálogos — por encima de Bootstrap (navbar ~1030); overlay clicable */
+/* ============================================================
+   DIÁLOGOS — FONDO SÓLIDO (fix transparencia)
+   ============================================================ */
 body .ui-widget-overlay,
 body .ui-dialog-mask {
     z-index: 1080 !important;
+    background: rgba(0,0,0,0.55) !important;  /* overlay más oscuro */
 }
 
 body .ui-dialog {
     z-index: 1090 !important;
     box-sizing: border-box;
     max-width: 96vw !important;
-    background: #fff; /* AGREGADO: fondo blanco al modal */
+    background: #ffffff !important;           /* ← fondo blanco sólido */
+    border-radius: 0.75rem !important;
+    border: none !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3) !important;
+    overflow: hidden;
 }
 
-/* Listas desplegables y calendarios por encima del diálogo (evitan cortes con overflow) */
-body .ui-selectonemenu-panel,
-body .ui-selectonemenu-items-wrapper,
-body .ui-datepicker {
-    z-index: 3000 !important;
-}
-
-body .ui-selectonemenu-panel .ui-selectonemenu-items {
-    max-height: 240px;
-    overflow-y: auto;
-}
-
+/* Título del diálogo */
 body .ui-dialog .ui-dialog-titlebar {
-    background: var(--taller-primary-mid) !important;
+    background: linear-gradient(135deg, var(--taller-primary) 0%, var(--taller-primary-mid) 100%) !important;
     color: #fff !important;
     border: none !important;
-    border-radius: 0.5rem 0.5rem 0 0 !important;
-    padding: 1rem 2.75rem 1rem 1.25rem !important;
+    border-radius: 0 !important;
+    padding: 1rem 3rem 1rem 1.35rem !important;
     position: relative;
 }
 
+body .ui-dialog .ui-dialog-titlebar .ui-dialog-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: #fff !important;
+}
+
+/* Contenido del diálogo — fondo blanco sólido */
 body .ui-dialog .ui-dialog-content {
+    background: #ffffff !important;           /* ← fix transparencia */
     box-sizing: border-box;
-    padding: 1rem 1.15rem !important;
+    padding: 1.25rem 1.35rem !important;
     overflow-x: hidden;
     overflow-y: auto;
-    max-height: min(70vh, 32rem);
+    max-height: min(70vh, 34rem);
     -webkit-overflow-scrolling: touch;
+    color: #1f2937 !important;
 }
 
+/* Footer del diálogo */
 body .ui-dialog .ui-dialog-footer {
-    border-top: 1px solid #dee2e6 !important;
-    padding: 0.75rem 1.25rem !important;
-    background: #f8f9fa !important;
-    border-radius: 0 0 0.5rem 0.5rem !important;
+    background: #f8fafc !important;           /* ← fondo sólido claro */
+    border-top: 1px solid #e5e7eb !important;
+    padding: 0.85rem 1.35rem !important;
+    border-radius: 0 !important;
 }
 
-/* Botón X siempre visible y clicable */
+/* ============================================================
+   BOTÓN X (cerrar diálogo) — fix visibilidad
+   ============================================================ */
 body .ui-dialog .ui-dialog-titlebar-close {
     color: #fff !important;
     opacity: 1 !important;
     visibility: visible !important;
-    width: 2.25rem !important;
-    height: 2.25rem !important;
+    width: 2rem !important;
+    height: 2rem !important;
     margin: 0 !important;
     padding: 0 !important;
     border-radius: 0.375rem !important;
-    background: rgba(255, 255, 255, 0.18) !important;
-    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    background: rgba(255,255,255,0.15) !important;
+    border: 1px solid rgba(255,255,255,0.3) !important;
+    position: absolute !important;
     right: 0.75rem !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background 0.15s !important;
+    cursor: pointer !important;
 }
 
 body .ui-dialog .ui-dialog-titlebar-close:hover {
-    background: rgba(255, 255, 255, 0.35) !important;
+    background: rgba(255,255,255,0.3) !important;
 }
 
 body .ui-dialog .ui-dialog-titlebar-close .ui-icon {
     opacity: 1 !important;
+    color: #fff !important;
+    /* Fix: forzar icono visible con pseudo-elemento si PF usa sprite */
+    background-image: none !important;
+    text-indent: 0 !important;
+    font-size: 0 !important;
+    width: 1rem !important;
+    height: 1rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
-/* Anchos por tipo (formularios cortos vs pantallas con tablas) */
-body .ui-dialog.taller-dialog-sm { width: min(96vw, 420px) !important; max-width: min(96vw, 420px) !important; }
-body .ui-dialog.taller-dialog-md { width: min(96vw, 520px) !important; max-width: min(96vw, 520px) !important; }
-body .ui-dialog.taller-dialog-lg { width: min(96vw, 640px) !important; max-width: min(96vw, 640px) !important; }
-body .ui-dialog.taller-dialog-xl { width: min(96vw, 880px) !important; max-width: min(96vw, 880px) !important; }
+/* Reemplazar el ícono sprite de PF con una X de texto */
+body .ui-dialog .ui-dialog-titlebar-close .ui-icon::after {
+    content: '✕';
+    font-size: 0.85rem;
+    color: #fff;
+    font-style: normal;
+    line-height: 1;
+}
 
-/* Confirmación borrar: ancho acotado y legible */
+/* ============================================================
+   ANCHOS DE DIÁLOGO
+   ============================================================ */
+body .ui-dialog.taller-dialog-sm  { width: min(96vw, 420px) !important; max-width: min(96vw, 420px) !important; }
+body .ui-dialog.taller-dialog-md  { width: min(96vw, 520px) !important; max-width: min(96vw, 520px) !important; }
+body .ui-dialog.taller-dialog-lg  { width: min(96vw, 640px) !important; max-width: min(96vw, 640px) !important; }
+body .ui-dialog.taller-dialog-xl  { width: min(96vw, 880px) !important; max-width: min(96vw, 880px) !important; }
+
+/* ============================================================
+   CONFIRM DIALOG — centrado y sólido
+   ============================================================ */
 body .ui-dialog.taller-pf-confirm,
 body .ui-confirm-dialog {
     z-index: 1100 !important;
-    max-width: min(96vw, 400px) !important;
+    width: min(96vw, 420px) !important;
+    max-width: min(96vw, 420px) !important;
+    background: #ffffff !important;
+    /* Centrado horizontal y vertical */
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
 }
 
-/* Formularios en panelGrid dentro de modales: menos aire, etiquetas alineadas */
+body .ui-confirm-dialog .ui-dialog-content {
+    background: #ffffff !important;
+    padding: 1.5rem 1.5rem 1rem !important;
+    text-align: center;
+}
+
+body .ui-confirm-dialog .ui-confirm-dialog-message {
+    font-size: 0.9rem;
+    color: #374151 !important;
+    font-weight: 500;
+    margin-left: 0.5rem;
+}
+
+body .ui-confirm-dialog .ui-icon.ui-confirm-dialog-icon {
+    color: #f59e0b !important;
+    font-size: 1.4rem !important;
+}
+
+/* ============================================================
+   GROWL — centrado arriba en lugar de esquina superior
+   ============================================================ */
+body .ui-growl {
+    z-index: 9999 !important;
+    /* Centrar horizontalmente */
+    position: fixed !important;
+    top: 1.25rem !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    right: auto !important;
+    width: auto !important;
+    min-width: 320px !important;
+    max-width: min(92vw, 480px) !important;
+}
+
+body .ui-growl-item-container {
+    border-radius: 0.65rem !important;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.18) !important;
+    margin-bottom: 0.5rem !important;
+    overflow: hidden;
+}
+
+/* Fondo sólido por tipo */
+body .ui-growl-item {
+    background: #fff !important;
+    border-left: 4px solid transparent;
+    padding: 0.85rem 1rem !important;
+}
+
+body .ui-growl-message-info   .ui-growl-item { border-left-color: #3b82f6 !important; }
+body .ui-growl-message-warn   .ui-growl-item { border-left-color: #f59e0b !important; }
+body .ui-growl-message-error  .ui-growl-item { border-left-color: #ef4444 !important; }
+body .ui-growl-message-fatal  .ui-growl-item { border-left-color: #7c3aed !important; }
+
+body .ui-growl-title {
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    color: #111827 !important;
+}
+
+body .ui-growl-message p {
+    font-size: 0.82rem !important;
+    color: #374151 !important;
+    margin: 0 !important;
+}
+
+/* ============================================================
+   FORMULARIOS EN PANELGRID (dentro de modales)
+   ============================================================ */
 body .ui-dialog .taller-dialog-grid.ui-panelgrid .ui-panelgrid-cell {
-    padding: 0.35rem 0.5rem !important;
+    padding: 0.4rem 0.5rem !important;
     vertical-align: middle;
 }
 
 body .ui-dialog .taller-dialog-grid label.form-label {
-    font-size: 0.8125rem;
+    font-size: 0.8rem;
     font-weight: 600;
-    color: #495057;
-    margin-bottom: 0.2rem;
+    color: #4b5563;
+    margin-bottom: 0.15rem;
 }
 
 @media (max-width: 576px) {
@@ -251,37 +634,141 @@ body .ui-dialog .taller-dialog-grid label.form-label {
     }
 }
 
-/* Inputs en diálogos */
+/* ============================================================
+   INPUTS Y SELECTS — fondo sólido (fix transparencia)
+   ============================================================ */
 body .ui-inputfield.form-control,
-body .ui-selectonemenu .ui-selectonemenu-label {
-    border-radius: 0.375rem;
+body .ui-inputtext.form-control,
+body .ui-password input {
+    background: #fff !important;
+    color: #1f2937 !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.5rem !important;
+    padding: 0.45rem 0.75rem !important;
+    font-size: 0.875rem !important;
+    transition: border-color 0.15s, box-shadow 0.15s !important;
 }
 
+body .ui-inputfield.form-control:focus,
+body .ui-inputtext.form-control:focus {
+    border-color: #4a9eff !important;
+    box-shadow: 0 0 0 3px rgba(74,158,255,0.15) !important;
+    outline: none !important;
+}
+
+/* SelectOneMenu — fondo sólido */
 body .ui-selectonemenu {
     width: 100% !important;
-    border-radius: 0.375rem;
+    border-radius: 0.5rem !important;
+    background: #fff !important;
+    border: 1px solid #d1d5db !important;
+}
+
+body .ui-selectonemenu .ui-selectonemenu-label {
+    background: #fff !important;
+    color: #1f2937 !important;
+    border: none !important;
+    border-radius: 0.5rem 0 0 0.5rem !important;
+    padding: 0.45rem 0.75rem !important;
+    font-size: 0.875rem !important;
 }
 
 body .ui-selectonemenu .ui-selectonemenu-trigger {
-    border-radius: 0 0.375rem 0.375rem 0;
+    background: #f3f4f6 !important;
+    border-left: 1px solid #d1d5db !important;
+    border-radius: 0 0.5rem 0.5rem 0 !important;
+    color: #6b7280 !important;
 }
 
-/* Panel filtros */
+/* Panel desplegable del select — fondo sólido */
+body .ui-selectonemenu-panel {
+    z-index: 3000 !important;
+    background: #fff !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.5rem !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+    overflow: hidden;
+}
+
+body .ui-selectonemenu-panel .ui-selectonemenu-items {
+    max-height: 240px;
+    overflow-y: auto;
+    background: #fff !important;
+}
+
+body .ui-selectonemenu-panel .ui-selectonemenu-item {
+    padding: 0.5rem 0.85rem !important;
+    font-size: 0.875rem !important;
+    color: #1f2937 !important;
+    background: #fff !important;
+}
+
+body .ui-selectonemenu-panel .ui-selectonemenu-item:hover,
+body .ui-selectonemenu-panel .ui-selectonemenu-item.ui-state-highlight {
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+}
+
+/* ============================================================
+   PANEL DE FILTROS
+   ============================================================ */
 body .ui-panel .ui-panel-titlebar {
     background: #fff !important;
-    border: 1px solid #dee2e6 !important;
-    border-radius: 0.5rem 0.5rem 0 0 !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 0.75rem 0.75rem 0 0 !important;
     font-weight: 600;
     color: var(--taller-primary-mid);
+    padding: 0.75rem 1rem !important;
 }
 
 body .ui-panel .ui-panel-content {
-    border: 1px solid #dee2e6 !important;
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
     border-top: none !important;
-    border-radius: 0 0 0.5rem 0.5rem;
+    border-radius: 0 0 0.75rem 0.75rem !important;
+    padding: 1rem !important;
 }
 
-/* Growl */
-body .ui-growl {
-    z-index: 9999 !important;
+/* ============================================================
+   DATEPICKER
+   ============================================================ */
+body .ui-datepicker {
+    z-index: 3000 !important;
+    background: #fff !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+}
+
+/* ============================================================
+   MENSAJES DE VALIDACIÓN JSF — fondo sólido y visible
+   ============================================================ */
+.ui-message-error,
+.ui-message-warn,
+.ui-message-info {
+    background: #fff !important;
+    border-radius: 0.375rem !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    margin-top: 0.15rem !important;
+}
+
+.ui-message-error { color: #dc2626 !important; border-left: 3px solid #dc2626 !important; }
+.ui-message-warn  { color: #d97706 !important; border-left: 3px solid #d97706 !important; }
+.ui-message-info  { color: #2563eb !important; border-left: 3px solid #2563eb !important; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 767px) {
+    body .ui-growl {
+        min-width: 90vw !important;
+    }
+
+    body .ui-dialog.taller-pf-confirm,
+    body .ui-confirm-dialog {
+        width: 92vw !important;
+        max-width: 92vw !important;
+    }
 }

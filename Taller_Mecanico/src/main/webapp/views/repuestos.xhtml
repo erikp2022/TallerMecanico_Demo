@@ -33,22 +33,30 @@
                             <p:column headerText="Nombre"><h:outputText value="#{r.nombre}"/></p:column>
                             <p:column headerText="Precio"><h:outputText value="#{r.precio}"/></p:column>
                             <p:column headerText="Stock"><h:outputText value="#{r.stock}"/></p:column>
-                            <p:column headerText="Acciones" width="180">
+                            <p:column headerText="Acciones" width="120">
                                 <div class="btn-group btn-group-sm">
                                     <p:commandButton icon="pi pi-pencil" process="@this" update=":formDlgEditRepuesto"
                                                      actionListener="#{repuestoBean.prepararEditar(r)}"
                                                      oncomplete="PF('dlgEditRepuesto').show()" styleClass="btn btn-outline-primary"/>
                                     <p:commandButton icon="pi pi-trash" process="@this" action="#{repuestoBean.eliminar(r)}"
                                                      update=":formTablaRepuesto :growl" styleClass="btn btn-outline-danger">
-                                        <p:confirm header="Confirmar" message="¿Eliminar repuesto?"/>
+                                        <p:confirm header="Confirmar" message="¿Desea eliminar este repuesto?" icon="pi pi-exclamation-triangle" />
                                     </p:commandButton>
                                 </div>
                             </p:column>
                         </p:dataTable>
                     </div>
                 </div>
-                <p:confirmDialog global="true" styleClass="taller-pf-confirm rounded-3 shadow"/>
+
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350px">
+                    <div class="d-flex justify-content-end gap-2 mt-2">
+                        <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no btn btn-outline-secondary" icon="pi pi-times" />
+                        <p:commandButton value="Sí, eliminar" type="button" styleClass="ui-confirmdialog-yes btn btn-danger" icon="pi pi-trash" />
+                    </div>
+                </p:confirmDialog>
             </h:form>
+
+
 
             <h:form id="formDlgNuevoRep">
                 <p:dialog header="Nuevo repuesto" widgetVar="dlgNuevoRep" modal="true" resizable="false" draggable="false"
@@ -76,29 +84,27 @@
             </h:form>
 
             <h:form id="formDlgEditRepuesto">
-                <p:dialog header="Editar repuesto" widgetVar="dlgEditRepuesto" modal="true" resizable="false" draggable="false"
-                          closable="true" closeOnEscape="true" responsive="true" blockScroll="true"
-                          styleClass="rounded-3 shadow taller-dialog-sm">
+                <p:dialog header="Editar repuesto" widgetVar="dlgEditRepuesto" modal="true"
+                          resizable="false" closable="true" responsive="true" styleClass="rounded-3 shadow taller-dialog-md">
                     <p:panelGrid columns="2" rendered="#{repuestoBean.seleccionado != null}" styleClass="ui-fluid taller-dialog-grid">
-                        <p:outputLabel value="Nombre" styleClass="form-label"/>
+                        <p:outputLabel value="Nombre" styleClass="form-label font-bold"/>
                         <p:inputText value="#{repuestoBean.seleccionado.nombre}" required="true" styleClass="form-control"/>
-                        <p:outputLabel value="Precio" styleClass="form-label"/>
-                        <p:inputNumber value="#{repuestoBean.seleccionado.precio}" minValue="0" decimalPlaces="2"/>
-                        <p:outputLabel value="Stock" styleClass="form-label"/>
-                        <p:inputNumber value="#{repuestoBean.seleccionado.stock}" minValue="0"/>
+                        <p:outputLabel value="Precio" styleClass="form-label font-bold"/>
+                        <p:inputNumber value="#{repuestoBean.seleccionado.precio}" minValue="0" decimalPlaces="2" symbol="L. "/>
+                        <p:outputLabel value="Stock" styleClass="form-label font-bold"/>
+                        <p:inputNumber value="#{repuestoBean.seleccionado.stock}" minValue="0" decimalPlaces="0"/>
                     </p:panelGrid>
                     <f:facet name="footer">
-                        <div class="d-flex justify-content-end gap-2 flex-wrap w-100">
-                            <p:commandButton type="button" value="Cancelar" icon="pi pi-times"
-                                             onclick="PF('dlgEditRepuesto').hide(); return false;"
-                                             styleClass="btn btn-outline-secondary"/>
-                            <p:commandButton value="Actualizar" action="#{repuestoBean.actualizar}" update=":formTablaRepuesto :growl formDlgEditRepuesto"
-                                             oncomplete="if(!args.validationFailed) PF('dlgEditRepuesto').hide()"
-                                             styleClass="btn btn-primary" icon="pi pi-check"/>
+                        <div class="d-flex justify-content-end gap-2">
+                            <p:commandButton type="button" value="Cancelar" onclick="PF('dlgEditRepuesto').hide();" styleClass="btn btn-outline-secondary"/>
+                            <p:commandButton value="Actualizar" action="#{repuestoBean.actualizar}" update=":formTablaRepuesto :growl"
+                                             oncomplete="PF('dlgEditRepuesto').hide()" styleClass="btn btn-primary" icon="pi pi-save"/>
                         </div>
                     </f:facet>
                 </p:dialog>
             </h:form>
+
+
         </h:panelGroup>
 
         <h:panelGroup layout="block" styleClass="alert alert-warning border-0 shadow-sm" rendered="#{not loginBean.admin}">
