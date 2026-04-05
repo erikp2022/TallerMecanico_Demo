@@ -5,7 +5,7 @@
                 xmlns:p="http://primefaces.org/ui"
                 template="/template.xhtml">
 
-    <ui:define name="title">Gestión de Técnicos</ui:define>
+    <ui:define name="title">Técnicos</ui:define>
 
     <ui:define name="content">
         <f:metadata>
@@ -13,72 +13,144 @@
         </f:metadata>
 
         <h:panelGroup rendered="#{loginBean.admin}">
-            <h:form id="formBarTec">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="text-primary fw-bold">Personal Técnico</h2>
-                    <p:commandButton value="Nuevo Técnico" icon="pi pi-plus"
+
+            <!-- Barra superior -->
+            <h:form id="formBarTec" prependId="false">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+                    <div>
+                        <h2 class="h3 fw-bold text-primary mb-1">Técnicos</h2>
+                        <p class="text-muted small mb-0">Personal de taller y especialidades</p>
+                    </div>
+                    <p:commandButton value="Nuevo técnico" icon="pi pi-plus"
                                      actionListener="#{tecnicoBean.prepararNuevo}"
-                                     update=":formDlgNuevoTec" oncomplete="PF('dlgNuevoTec').show()"
-                                     styleClass="btn btn-primary shadow-sm"/>
+                                     update=":formDlgNuevoTec"
+                                     oncomplete="PF('dlgNuevoTec').show()"
+                                     styleClass="btn btn-primary rounded-3 shadow-sm"/>
                 </div>
             </h:form>
 
+            <!-- Tabla -->
             <h:form id="formTablaTec">
-                <p:dataTable value="#{tecnicoBean.getLista()}" var="t" paginator="true" rows="10"
-                             styleClass="card border-0 shadow-sm rounded-3">
-                    <p:column headerText="Nombre">#{t.nombre}</p:column>
-                    <p:column headerText="Correo">#{t.correo}</p:column>
-                    <p:column headerText="Especialidad">#{t.especialidad}</p:column>
-                    <p:column headerText="Estado">
-                        <span class="badge #{t.estado eq 'Activo' ? 'bg-success' : 'bg-secondary'}">#{t.estado}</span>
-                    </p:column>
-                    <p:column headerText="Acciones" width="120">
-                        <p:commandButton icon="pi pi-pencil" actionListener="#{tecnicoBean.prepararEditar(t)}"
-                                         update=":formDlgEditTec" oncomplete="PF('dlgEditTec').show()"
-                                         styleClass="btn btn-sm btn-outline-primary me-2"/>
-                    </p:column>
-                </p:dataTable>
+                <div class="card border-0 shadow-sm">
+                    <div class="table-responsive rounded-3">
+                        <p:dataTable value="#{tecnicoBean.lista}" var="t"
+                                     paginator="true" rows="10" reflow="true"
+                                     emptyMessage="Sin registros"
+                                     tableStyleClass="table table-hover align-middle mb-0">
+
+                            <p:column headerText="ID" width="70">
+                                <h:outputText value="#{t.idTecnico}"/>
+                            </p:column>
+                            <p:column headerText="Nombre">
+                                <h:outputText value="#{t.nombre}"/>
+                            </p:column>
+                            <p:column headerText="Correo">
+                                <h:outputText value="#{t.correo}"/>
+                            </p:column>
+                            <p:column headerText="Especialidad">
+                                <h:outputText value="#{t.especialidad}"/>
+                            </p:column>
+                            <p:column headerText="Estado">
+                                <span class="badge #{t.estado eq 'Activo' ? 'bg-success' : 'bg-secondary'}">
+                                    <h:outputText value="#{t.estado}"/>
+                                </span>
+                            </p:column>
+                            <p:column headerText="Acciones" width="120">
+                                <div class="btn-group btn-group-sm">
+                                    <p:commandButton icon="pi pi-pencil"
+                                                     process="@this"
+                                                     update=":formDlgEditTec"
+                                                     actionListener="#{tecnicoBean.prepararEditar(t)}"
+                                                     oncomplete="PF('dlgEditTec').show()"
+                                                     styleClass="btn btn-outline-primary"
+                                                     title="Editar"/>
+                                    <p:commandButton icon="pi pi-trash"
+                                                     process="@this"
+                                                     action="#{tecnicoBean.eliminar(t.idTecnico)}"
+                                                     update=":formTablaTec :growl"
+                                                     styleClass="btn btn-outline-danger"
+                                                     title="Eliminar">
+                                        <p:confirm header="Confirmar eliminación"
+                                                   message="¿Está seguro de eliminar este técnico?"
+                                                   icon="pi pi-exclamation-triangle"/>
+                                    </p:commandButton>
+                                </div>
+                            </p:column>
+
+                        </p:dataTable>
+                    </div>
+                </div>
             </h:form>
 
-            <!-- DIALOGO NUEVO TÉCNICO -->
+            <!-- ConfirmDialog en su PROPIO form separado -->
+            <h:form id="formConfirmTec">
+                <p:confirmDialog global="true" widgetVar="dlgConfirmTec"
+                                 styleClass="rounded-3 shadow">
+                    <p:commandButton value="Cancelar"
+                                     icon="pi pi-times"
+                                     onclick="PF('dlgConfirmTec').hide(); return false;"
+                                     styleClass="btn btn-outline-secondary ui-confirmdialog-no"
+                                     type="button"/>
+                    <p:commandButton value="Sí, eliminar"
+                                     icon="pi pi-trash"
+                                     styleClass="btn btn-danger ui-confirmdialog-yes"
+                                     type="button"/>
+                </p:confirmDialog>
+            </h:form>
+
+            <!-- Dialog Nuevo Técnico -->
             <h:form id="formDlgNuevoTec">
-                <p:dialog header="Registrar Nuevo Técnico" widgetVar="dlgNuevoTec" modal="true" responsive="true">
+                <p:dialog header="Nuevo técnico" widgetVar="dlgNuevoTec"
+                          modal="true" resizable="false" draggable="false"
+                          closable="true" closeOnEscape="true"
+                          responsive="true" blockScroll="true"
+                          styleClass="rounded-3 shadow taller-dialog-md">
 
-                    <p:messages id="msgsNuevo" closable="true" showDetail="false" />
+                    <p class="small text-muted mb-2">
+                        Se creará un usuario con rol técnico, mismo correo y contraseña inicial
+                        <strong>1234</strong> (cámbiela tras el primer acceso).
+                    </p>
 
-                    <p:panelGrid columns="2" rendered="#{tecnicoBean.nuevo != null}" styleClass="ui-fluid">
-                        <p:outputLabel value="Nombre Completo:" for="nomN"/>
-                        <p:inputText id="nomN" value="#{tecnicoBean.nuevo.nombre}"
+                    <p:messages id="msgsNuevo" closable="true" showDetail="true"/>
+
+                    <p:panelGrid columns="2"
+                                 rendered="#{tecnicoBean.nuevo != null}"
+                                 styleClass="ui-fluid taller-dialog-grid">
+
+                        <p:outputLabel value="Nombre" styleClass="form-label"/>
+                        <p:inputText value="#{tecnicoBean.nuevo.nombre}"
                                      required="true"
-                                     requiredMessage="El nombre es obligatorio"/>
+                                     requiredMessage="El nombre es obligatorio"
+                                     styleClass="form-control"/>
 
-                        <p:outputLabel value="Correo:" for="corN"/>
-                        <p:inputText id="corN" value="#{tecnicoBean.nuevo.correo}"
+                        <p:outputLabel value="Correo (login)" styleClass="form-label"/>
+                        <p:inputText value="#{tecnicoBean.nuevo.correo}"
                                      required="true"
-                                     placeholder="ejemplo@gmail.com"
                                      requiredMessage="El correo es obligatorio"
-                                     validatorMessage="Correo inválido">
-                            <f:validateRegex pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"/>
-                            <p:ajax event="blur" update="msgsNuevo"/>
+                                     placeholder="tecnico@correo.com"
+                                     styleClass="form-control">
+                            <f:validateRegex pattern="^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"/>
                         </p:inputText>
 
-                        <p:outputLabel value="Especialidad:" for="espN"/>
-                        <p:inputText id="espN" value="#{tecnicoBean.nuevo.especialidad}"/>
+                        <p:outputLabel value="Especialidad" styleClass="form-label"/>
+                        <p:inputText value="#{tecnicoBean.nuevo.especialidad}"
+                                     styleClass="form-control"/>
 
-                        <p:outputLabel value="Estado:"/>
-                        <p:selectOneMenu value="#{tecnicoBean.nuevo.estado}">
+                        <p:outputLabel value="Estado" styleClass="form-label"/>
+                        <p:selectOneMenu value="#{tecnicoBean.nuevo.estado}"
+                                         styleClass="w-100" required="true">
                             <f:selectItems value="#{tecnicoBean.estadosRegistro}"/>
                         </p:selectOneMenu>
                     </p:panelGrid>
 
                     <f:facet name="footer">
-                        <div class="d-flex justify-content-end gap-2">
-                            <p:commandButton value="Cancelar" type="button"
-                                             onclick="PF('dlgNuevoTec').hide()"
-                                             styleClass="btn btn-secondary"/>
-                            <p:commandButton value="Guardar"
+                        <div class="d-flex justify-content-end gap-2 flex-wrap w-100">
+                            <p:commandButton type="button" value="Cancelar" icon="pi pi-times"
+                                             onclick="PF('dlgNuevoTec').hide(); return false;"
+                                             styleClass="btn btn-outline-secondary"/>
+                            <p:commandButton value="Guardar" icon="pi pi-check"
                                              action="#{tecnicoBean.guardar}"
-                                             update="msgsNuevo :formTablaTec :growl"
+                                             update="msgsNuevo :formTablaTec :growl formDlgNuevoTec"
                                              oncomplete="if(!args.validationFailed) PF('dlgNuevoTec').hide()"
                                              styleClass="btn btn-primary"/>
                         </div>
@@ -86,43 +158,55 @@
                 </p:dialog>
             </h:form>
 
-            <!-- DIALOGO EDITAR TÉCNICO -->
+            <!-- Dialog Editar Técnico -->
             <h:form id="formDlgEditTec">
-                <p:dialog header="Modificar Técnico" widgetVar="dlgEditTec"
-                          modal="true" responsive="true" closable="true">
+                <p:dialog header="Editar técnico" widgetVar="dlgEditTec"
+                          modal="true" resizable="false" draggable="false"
+                          closable="true" closeOnEscape="true"
+                          responsive="true" blockScroll="true"
+                          styleClass="rounded-3 shadow taller-dialog-md">
 
-                    <p:messages id="msgsEdit" closable="true" showDetail="false"/>
+                    <p:messages id="msgsEdit" closable="true" showDetail="true"/>
 
-                    <p:panelGrid columns="2" rendered="#{tecnicoBean.seleccionado != null}" styleClass="ui-fluid">
-                        <p:outputLabel value="Nombre:" for="nomE"/>
-                        <p:inputText id="nomE" value="#{tecnicoBean.seleccionado.nombre}"
+                    <p:panelGrid columns="2"
+                                 rendered="#{tecnicoBean.seleccionado != null}"
+                                 styleClass="ui-fluid taller-dialog-grid">
+
+                        <p:outputLabel value="Nombre" styleClass="form-label"/>
+                        <p:inputText value="#{tecnicoBean.seleccionado.nombre}"
                                      required="true"
-                                     requiredMessage="El nombre es obligatorio"/>
+                                     requiredMessage="El nombre es obligatorio"
+                                     styleClass="form-control"/>
 
-                        <p:outputLabel value="Correo:" for="corE"/>
-                        <p:inputText id="corE" value="#{tecnicoBean.seleccionado.correo}"
+                        <p:outputLabel value="Correo (login)" styleClass="form-label"/>
+                        <p:inputText value="#{tecnicoBean.seleccionado.correo}"
                                      required="true"
                                      requiredMessage="El correo es obligatorio"
-                                     validatorMessage="Correo inválido">
-                            <f:validateRegex pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"/>
-                            <p:ajax event="blur" update="msgsEdit"/>
+                                     placeholder="tecnico@correo.com"
+                                     styleClass="form-control">
+                            <f:validateRegex pattern="^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"/>
                         </p:inputText>
 
-                        <p:outputLabel value="Estado:"/>
-                        <p:selectOneMenu value="#{tecnicoBean.seleccionado.estado}">
+                        <p:outputLabel value="Especialidad" styleClass="form-label"/>
+                        <p:inputText value="#{tecnicoBean.seleccionado.especialidad}"
+                                     styleClass="form-control"/>
+
+                        <p:outputLabel value="Estado" styleClass="form-label"/>
+                        <p:selectOneMenu value="#{tecnicoBean.seleccionado.estado}"
+                                         styleClass="w-100" required="true">
                             <f:selectItems value="#{tecnicoBean.estadosRegistro}"/>
                         </p:selectOneMenu>
                     </p:panelGrid>
 
                     <f:facet name="footer">
-                        <div class="d-flex justify-content-end gap-2">
-                            <p:commandButton value="Cancelar" type="button"
-                                             onclick="PF('dlgEditTec').hide()"
-                                             styleClass="btn btn-secondary"/>
-                            <p:commandButton value="Actualizar Datos"
+                        <div class="d-flex justify-content-end gap-2 flex-wrap w-100">
+                            <p:commandButton type="button" value="Cancelar" icon="pi pi-times"
+                                             onclick="PF('dlgEditTec').hide(); return false;"
+                                             styleClass="btn btn-outline-secondary"/>
+                            <p:commandButton value="Actualizar" icon="pi pi-check"
                                              action="#{tecnicoBean.actualizar}"
-                                             update="msgsEdit :formTablaTec :growl"
-                                             oncomplete="if(!args.validationFailed &amp;&amp; !args.errorEncontrado) PF('dlgEditTec').hide()"
+                                             update="msgsEdit :formTablaTec :growl formDlgEditTec"
+                                             oncomplete="if(!args.validationFailed) PF('dlgEditTec').hide()"
                                              styleClass="btn btn-primary"/>
                         </div>
                     </f:facet>
@@ -130,5 +214,13 @@
             </h:form>
 
         </h:panelGroup>
+
+        <!-- Sin permisos -->
+        <h:panelGroup layout="block"
+                      styleClass="alert alert-warning border-0 shadow-sm"
+                      rendered="#{not loginBean.admin}">
+            <i class="bi bi-shield-exclamation me-2"></i>No tiene permisos para esta sección.
+        </h:panelGroup>
+
     </ui:define>
 </ui:composition>

@@ -28,19 +28,24 @@
         <h:form id="formTablaRep">
             <div class="card border-0 shadow-sm">
                 <div class="table-responsive rounded-3">
+
                     <p:dataTable value="#{reparacionBean.lista}" var="r" paginator="true" rows="10" reflow="true"
                                  emptyMessage="No hay reparaciones registradas"
                                  tableStyleClass="table table-hover align-middle mb-0">
 
                         <p:column headerText="ID" width="60"><h:outputText value="#{r.idReparacion}"/></p:column>
                         <p:column headerText="Orden" width="80"><h:outputText value="#{r.idOrden}"/></p:column>
+                        <p:column headerText="Cliente" width="120"><h:outputText value="#{r.nombreCliente}"/></p:column>
                         <p:column headerText="Descripción"><h:outputText value="#{r.descripcion}"/></p:column>
 
                         <p:column headerText="Estado" width="130">
-                            <span class="badge rounded-pill #{r.estado eq 'FINALIZADO' ? 'bg-success-light text-success' : 'bg-primary-light text-primary'}">
+                            <span class="badge-estado #{r.estado eq 'FINALIZADO' ? 'badge-finalizado' :
+                                   (r.estado eq 'PENDIENTE' ? 'badge-pendiente' :
+                                   (r.estado eq 'EN PROCESO' ? 'badge-proceso' : ''))}">
                                 <h:outputText value="#{r.estado}"/>
                             </span>
                         </p:column>
+
 
                         <p:column headerText="Acciones" width="120">
                             <div class="btn-group btn-group-sm">
@@ -57,7 +62,7 @@
                                                  styleClass="btn btn-outline-danger">
                                     <p:confirm header="Confirmar"
                                                message="¿Eliminar reparación?"
-                                               icon="pi pi-exclamation-triangle" />
+                                               icon="pi pi-exclamation-triangle"/>
                                 </p:commandButton>
                             </div>
                         </p:column>
@@ -68,9 +73,9 @@
             <p:confirmDialog global="true" showEffect="fade" hideEffect="fade" responsive="true" width="350px">
                 <div class="d-flex justify-content-end gap-2 mt-2">
                     <p:commandButton value="Cancelar" type="button"
-                                     styleClass="ui-confirmdialog-no btn btn-outline-secondary" icon="pi pi-times" />
+                                     styleClass="ui-confirmdialog-no btn btn-outline-secondary" icon="pi pi-times"/>
                     <p:commandButton value="Eliminar" type="button"
-                                     styleClass="ui-confirmdialog-yes btn btn-danger" icon="pi pi-trash" />
+                                     styleClass="ui-confirmdialog-yes btn btn-danger" icon="pi pi-trash"/>
                 </div>
             </p:confirmDialog>
         </h:form>
@@ -79,7 +84,8 @@
             <p:dialog header="Registrar reparación" widgetVar="dlgNuevaRep" modal="true"
                       resizable="false" responsive="true" styleClass="rounded-3 shadow taller-dialog-md">
 
-                <p:panelGrid columns="2" rendered="#{reparacionBean.nuevo != null}" styleClass="ui-fluid taller-dialog-grid">
+                <p:panelGrid columns="2" rendered="#{reparacionBean.nuevo != null}"
+                             styleClass="ui-fluid taller-dialog-grid">
 
                     <p:outputLabel value="Orden de Trabajo" styleClass="form-label font-bold"/>
                     <p:selectOneMenu value="#{reparacionBean.nuevo.idOrden}" required="true">
@@ -94,14 +100,15 @@
                     </p:selectOneMenu>
 
                     <p:outputLabel value="Repuesto utilizado" styleClass="form-label font-bold text-primary"/>
-                    <p:selectOneMenu value="#{reparacionBean.idRepuestoSeleccionado}" filter="true" filterMatchMode="contains">
+                    <p:selectOneMenu value="#{reparacionBean.idRepuestoSeleccionado}" filter="true"
+                                     filterMatchMode="contains">
                         <f:selectItem itemLabel="Ninguno / Solo mano de obra" itemValue="#{null}"/>
                         <f:selectItems value="#{reparacionBean.repuestosDisponibles}" var="rep"
                                        itemLabel="#{rep.nombre} (Stock: #{rep.stock})" itemValue="#{rep.idRepuesto}"/>
                     </p:selectOneMenu>
 
                     <p:outputLabel value="Cantidad" styleClass="form-label font-bold"/>
-                    <p:spinner value="#{reparacionBean.cantidadRepuesto}" min="1" max="100" />
+                    <p:spinner value="#{reparacionBean.cantidadRepuesto}" min="1" max="100"/>
 
                     <p:outputLabel value="Descripción" styleClass="form-label font-bold"/>
                     <p:inputTextarea value="#{reparacionBean.nuevo.descripcion}" rows="3"
@@ -110,7 +117,8 @@
 
                 <f:facet name="footer">
                     <div class="d-flex justify-content-end gap-2">
-                        <p:commandButton type="button" value="Cancelar" onclick="PF('dlgNuevaRep').hide();" styleClass="btn btn-outline-secondary"/>
+                        <p:commandButton type="button" value="Cancelar" onclick="PF('dlgNuevaRep').hide();"
+                                         styleClass="btn btn-outline-secondary"/>
                         <p:commandButton value="Guardar Reparación" action="#{reparacionBean.guardar}"
                                          update=":formTablaRep :growl"
                                          oncomplete="if(!args.validationFailed) PF('dlgNuevaRep').hide()"
@@ -121,13 +129,12 @@
         </h:form>
 
 
-
-
         <h:form id="formDlgEditRep">
             <p:dialog header="Editar reparación" widgetVar="dlgEditRep" modal="true"
                       resizable="false" responsive="true" styleClass="rounded-3 shadow taller-dialog-md">
 
-                <p:panelGrid columns="2" rendered="#{reparacionBean.seleccionado != null}" styleClass="ui-fluid taller-dialog-grid">
+                <p:panelGrid columns="2" rendered="#{reparacionBean.seleccionado != null}"
+                             styleClass="ui-fluid taller-dialog-grid">
                     <p:outputLabel value="Estado" styleClass="form-label font-bold"/>
                     <p:selectOneMenu value="#{reparacionBean.seleccionado.estado}">
                         <f:selectItems value="#{reparacionBean.estados}"/>
@@ -139,7 +146,8 @@
 
                 <f:facet name="footer">
                     <div class="d-flex justify-content-end gap-2">
-                        <p:commandButton type="button" value="Cancelar" onclick="PF('dlgEditRep').hide();" styleClass="btn btn-outline-secondary"/>
+                        <p:commandButton type="button" value="Cancelar" onclick="PF('dlgEditRep').hide();"
+                                         styleClass="btn btn-outline-secondary"/>
                         <p:commandButton value="Actualizar" action="#{reparacionBean.actualizar}"
                                          update=":formTablaRep :growl"
                                          oncomplete="if(!args.validationFailed) PF('dlgEditRep').hide()"

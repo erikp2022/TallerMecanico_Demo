@@ -191,7 +191,6 @@ public class UsuarioDAO {
     }
 
 
-
     public void eliminar(int idUsuario) throws SQLException {
         String sql = "DELETE FROM usuarios WHERE id_usuario = ?";
         try (Connection c = Conexion.obtenerConexion();
@@ -215,6 +214,78 @@ public class UsuarioDAO {
         return false;
     }
 
+    // NUEVO: verifica si el usuario tiene alguna orden (cualquier estado)
+    public boolean tieneOrdenesComoCreador(int idUsuario) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM ORDENES_TRABAJO WHERE id_usuario = ?";
+        try (Connection c = Conexion.obtenerConexion();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, idUsuario);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+        }
+    }
+
+    // Verifica si el técnico tiene órdenes que NO estén finalizadas
+    public boolean tieneOrdenesPendientes(int idTecnico) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM ordenes_trabajo WHERE id_tecnico = ? AND estado IN ('Pendiente', 'En proceso')";
+        try (Connection c = Conexion.obtenerConexion();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, idTecnico);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+        }
+    }
+
+    // REEMPLAZA el método existente — sin setAutoCommit (Access no lo soporta bien)
+    public void eliminarUsuarioYDatosTecnico(int idUsuario, Integer idTecnico) throws SQLException {
+        try (Connection c = Conexion.obtenerConexion()) {
+
+            // 1. Si es técnico: borrar reparaciones de sus órdenes primero (hijas)
+            if (idTecnico != null && idTecnico > 0) {
+                String sqlRep = "DELETE FROM REPARACIONES WHERE id_orden IN " +
+                        "(SELECT id_orden FROM ORDENES_TRABAJO WHERE id_tecnico = ?)";
+                try (PreparedStatement ps = c.prepareStatement(sqlRep)) {
+                    ps.setInt(1, idTecnico);
+                    ps.executeUpdate();
+                }
+            }
+
+            // 2. Si es técnico: borrar sus órdenes de trabajo
+            if (idTecnico != null && idTecnico > 0) {
+                String sqlOrd = "DELETE FROM ORDENES_TRABAJO WHERE id_tecnico = ?";
+                try (PreparedStatement ps = c.prepareStatement(sqlOrd)) {
+                    ps.setInt(1, idTecnico);
+                    ps.executeUpdate();
+                }
+            }
+
+            // 3. Desvincular órdenes creadas por este usuario (suelta la FK antes de borrarlo)
+            String sqlFk = "UPDATE ORDENES_TRABAJO SET id_usuario = NULL WHERE id_usuario = ?";
+            try (PreparedStatement ps = c.prepareStatement(sqlFk)) {
+                ps.setInt(1, idUsuario);
+                ps.executeUpdate();
+            }
+
+            // 4. Borrar técnico (si aplica)
+            if (idTecnico != null && idTecnico > 0) {
+                String sqlTec = "DELETE FROM TECNICOS WHERE id_tecnico = ?";
+                try (PreparedStatement ps = c.prepareStatement(sqlTec)) {
+                    ps.setInt(1, idTecnico);
+                    ps.executeUpdate();
+                }
+            }
+
+            // 5. Por último: borrar el usuario (ya no tiene nada que lo sujete)
+            String sqlUsu = "DELETE FROM USUARIOS WHERE id_usuario = ?";
+            try (PreparedStatement ps = c.prepareStatement(sqlUsu)) {
+                ps.setInt(1, idUsuario);
+                ps.executeUpdate();
+            }
+        }
+    }
+
     // Elimina reparaciones y órdenes finalizadas del técnico vinculado
     public void eliminarOrdenesYReparacionesFinalizadas(int idTecnico) throws SQLException {
         // Primero reparaciones (hijas de órdenes)
@@ -226,6 +297,7 @@ public class UsuarioDAO {
             ps.setInt(1, idTecnico);
             ps.executeUpdate();
         }
+
         // Luego las órdenes finalizadas
         String sqlOrd = "DELETE FROM ordenes_trabajo " +
                 "WHERE id_tecnico = ? AND estado = 'Finalizado'";
@@ -235,8 +307,6 @@ public class UsuarioDAO {
             ps.executeUpdate();
         }
     }
-
-
 
 
     public int contar() throws SQLException {

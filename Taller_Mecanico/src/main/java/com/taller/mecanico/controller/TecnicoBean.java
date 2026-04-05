@@ -8,6 +8,7 @@ import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Named;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -32,7 +33,11 @@ public class TecnicoBean implements Serializable {
     private Tecnico nuevo;
 
     public void cargarLista() {
-        try { lista = dao.listarTodos(); } catch (Exception e) { error("Error al cargar: " + e.getMessage()); }
+        try {
+            lista = dao.listarTodos();
+        } catch (Exception e) {
+            error("Error al cargar: " + e.getMessage());
+        }
     }
 
     public void prepararNuevo() {
@@ -60,7 +65,9 @@ public class TecnicoBean implements Serializable {
                 cargarLista();
                 info("Técnico creado. Acceso con clave: " + PASSWORD_DEFECTO);
             }
-        } catch (Exception e) { error(e.getMessage()); }
+        } catch (Exception e) {
+            error(e.getMessage());
+        }
     }
 
     public void actualizar() {
@@ -79,7 +86,39 @@ public class TecnicoBean implements Serializable {
                 cargarLista();
                 info("Técnico actualizado correctamente.");
             }
-        } catch (Exception e) { error(e.getMessage()); }
+        } catch (Exception e) {
+            error(e.getMessage());
+        }
+    }
+
+    public void eliminar(int idTecnico) {
+        try {
+
+            // ⚠️ Validar si tiene órdenes activas
+            if (dao.tieneOrdenesActivas(idTecnico)) {
+                warn("No se puede eliminar: el técnico tiene órdenes activas.");
+                return;
+            }
+
+            // 🧹 Primero limpiar dependencias
+            dao.eliminarReparacionesDeOrdenes(idTecnico);
+            dao.eliminarOrdenesFinalizada(idTecnico);
+
+            // 🧍 Eliminar usuario vinculado
+            Usuario u = usuarioDAO.buscarPorIdTecnico(idTecnico);
+            if (u != null) {
+                usuarioDAO.eliminar(u.getIdUsuario());
+            }
+
+            // 👨‍🔧 Eliminar técnico
+            dao.eliminar(idTecnico);
+
+            cargarLista();
+            info("Técnico eliminado correctamente.");
+
+        } catch (Exception e) {
+            error("Error al eliminar: " + e.getMessage());
+        }
     }
 
     private boolean validar(Tecnico t, Integer idActual) throws Exception {
@@ -106,16 +145,45 @@ public class TecnicoBean implements Serializable {
     }
 
     // Métodos de utilidad para mensajes
-    private void info(String m) { FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Éxito", m)); }
-    private void warn(String m) { FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso", m)); }
-    private void error(String m) { FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", m)); }
+    private void info(String m) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Éxito", m));
+    }
+
+    private void warn(String m) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso", m));
+    }
+
+    private void error(String m) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", m));
+    }
 
     // Getters y Setters...
-    public List<Tecnico> getLista() { if (lista == null) cargarLista(); return lista; }
-    public Tecnico getSeleccionado() { return seleccionado; }
-    public void setSeleccionado(Tecnico seleccionado) { this.seleccionado = seleccionado; }
-    public Tecnico getNuevo() { return nuevo; }
-    public void setNuevo(Tecnico nuevo) { this.nuevo = nuevo; }
-    public List<String> getEstadosRegistro() { return List.of("Activo", "Inactivo"); }
-    public void prepararEditar(Tecnico t) { this.seleccionado = t; }
+    public List<Tecnico> getLista() {
+        if (lista == null) cargarLista();
+        return lista;
+    }
+
+    public Tecnico getSeleccionado() {
+        return seleccionado;
+    }
+
+    public void setSeleccionado(Tecnico seleccionado) {
+        this.seleccionado = seleccionado;
+    }
+
+    public Tecnico getNuevo() {
+        return nuevo;
+    }
+
+    public void setNuevo(Tecnico nuevo) {
+        this.nuevo = nuevo;
+    }
+
+    public List<String> getEstadosRegistro() {
+        return List.of("Activo", "Inactivo");
+    }
+
+    public void prepararEditar(Tecnico t) {
+        this.seleccionado = t;
+    }
 }

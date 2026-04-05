@@ -13,18 +13,15 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.regex.Pattern;
 
+
 @Named("usuarioBean")
 @ViewScoped
 public class UsuarioBean implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
-    private static final Pattern EMAIL = Pattern.compile(
-            "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    private static final String GMAIL_REGEX = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
 
     private final UsuarioDAO dao = new UsuarioDAO();
-    private final TecnicoDAO tecnicoDAO = new TecnicoDAO();
-
     private List<Usuario> lista;
     private Usuario seleccionado;
     private Usuario nuevo;
@@ -33,210 +30,129 @@ public class UsuarioBean implements Serializable {
         try {
             lista = dao.listarTodos();
         } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
+            error("Error al cargar: " + e.getMessage());
         }
     }
 
     public void prepararNuevo() {
         nuevo = new Usuario();
         nuevo.setEstado("Activo");
-        nuevo.setRol("admin");
+        nuevo.setRol("admin"); // Por defecto admin, ya que técnicos se crean en su módulo
     }
 
     public void guardar() {
         try {
-            if (nuevo == null) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación", "Abra primero «Nuevo usuario»."));
-                return;
-            }
-            if (nuevo.getNombre() == null || nuevo.getNombre().isBlank()
-                    || nuevo.getCorreo() == null || nuevo.getCorreo().isBlank()
-                    || nuevo.getContrasena() == null || nuevo.getContrasena().isBlank()) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación", "Complete los campos obligatorios."));
-                return;
-            }
-            if (!EMAIL.matcher(nuevo.getCorreo().trim()).matches()) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación", "Formato de correo no válido."));
-                return;
-            }
-            if (!"admin".equalsIgnoreCase(nuevo.getRol())) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación",
-                                "Las cuentas con rol técnico se crean desde el módulo Técnicos."));
-                return;
-            }
-            if (dao.existeCorreo(nuevo.getCorreo().trim(), null)) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación", "Ya existe un usuario con ese correo."));
-                return;
-            }
-            nuevo.setCorreo(nuevo.getCorreo().trim().toLowerCase());
-            nuevo.setIdTecnico(null);
-            dao.insertar(nuevo);
-            cargarLista();
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Guardado", "Usuario administrador creado."));
-        } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
-        }
-    }
-
-    public void prepararEditar(Usuario u) {
-        try {
-            seleccionado = dao.buscarPorId(u.getIdUsuario());
-            if (seleccionado == null) {
-                seleccionado = u;
-            } else {
-                seleccionado.setContrasena(null);
+            if (validar(nuevo, null)) {
+                nuevo.setCorreo(nuevo.getCorreo().trim().toLowerCase());
+                nuevo.setIdTecnico(null);
+                dao.insertar(nuevo);
+                cargarLista();
+                info("Usuario administrador creado correctamente.");
             }
         } catch (Exception e) {
-            seleccionado = u;
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
-        }
-        if (seleccionado != null) {
-            normalizarEstadoCuenta(seleccionado);
+            error(e.getMessage());
         }
     }
 
     public void actualizar() {
         try {
-            if (seleccionado == null) return;
+            if (seleccionado != null && validar(seleccionado, seleccionado.getIdUsuario())) {
+                seleccionado.setCorreo(seleccionado.getCorreo().trim().toLowerCase());
 
-            if (seleccionado.getNombre() == null || seleccionado.getNombre().isBlank()
-                    || seleccionado.getCorreo() == null || seleccionado.getCorreo().isBlank()) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación", "Complete los campos obligatorios."));
-                return;
-            }
-
-            // mantenemos un contra si no se escribe una nueva
-            String passNueva = seleccionado.getContrasena() != null ? seleccionado.getContrasena().trim() : "";
-            if (passNueva.isEmpty()) {
-                Usuario existente = dao.buscarPorId(seleccionado.getIdUsuario());
-                if (existente == null || existente.getContrasena() == null || existente.getContrasena().isBlank()) {
-                    FacesContext.getCurrentInstance().addMessage(null,
-                            new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación",
-                                    "Indique una contraseña o vuelva a cargar el usuario."));
-                    return;
+                // Lógica de contraseña: si viene vacía, mantenemos la anterior
+                if (seleccionado.getContrasena() == null || seleccionado.getContrasena().isBlank()) {
+                    Usuario existente = dao.buscarPorId(seleccionado.getIdUsuario());
+                    seleccionado.setContrasena(existente.getContrasena());
                 }
-                seleccionado.setContrasena(existente.getContrasena());
-            } else {
-                seleccionado.setContrasena(passNueva);
+
+                dao.actualizar(seleccionado);
+                cargarLista();
+                info("Usuario actualizado correctamente.");
             }
-
-            if (!EMAIL.matcher(seleccionado.getCorreo().trim()).matches()) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación", "Formato de correo no válido."));
-                return;
-            }
-
-            String rol = seleccionado.getRol() != null ? seleccionado.getRol().trim() : "";
-            if (!"admin".equalsIgnoreCase(rol) && !"tecnico".equalsIgnoreCase(rol)) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación", "Rol no válido."));
-                return;
-            }
-
-            // Si cambia a admin, limpiar id_tecnico
-            if ("admin".equalsIgnoreCase(rol)) {
-                seleccionado.setIdTecnico(null);
-            }
-
-            if (dao.existeCorreo(seleccionado.getCorreo().trim(), seleccionado.getIdUsuario())) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN, "Validación", "Ya existe otro usuario con ese correo."));
-                return;
-            }
-
-            seleccionado.setCorreo(seleccionado.getCorreo().trim().toLowerCase());
-            dao.actualizar(seleccionado);
-            cargarLista();
-            seleccionado.setContrasena(null);
-
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Actualizado", "Usuario modificado."));
-
         } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
+            error(e.getMessage());
         }
     }
 
     public void eliminar(Usuario u) {
         try {
-            // Evitar que el usuario elimine su propia cuenta
-            Usuario sesion = (Usuario) FacesContext.getCurrentInstance()
+            // Regla 1: No borrarse a sí mismo
+            Usuario actual = (Usuario) FacesContext.getCurrentInstance()
                     .getExternalContext().getSessionMap().get("usuario");
-            if (sesion != null && sesion.getIdUsuario().equals(u.getIdUsuario())) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                        new FacesMessage(FacesMessage.SEVERITY_WARN,
-                                "Acción no permitida",
-                                "No puedes eliminar tu propia cuenta mientras estás conectado."));
+            if (actual != null && actual.getIdUsuario().equals(u.getIdUsuario())) {
+                warn("No puedes eliminar tu propia cuenta.");
                 return;
             }
 
-            // Si es técnico, verificar y limpiar sus órdenes
-            if ("tecnico".equalsIgnoreCase(u.getRol()) && u.getIdTecnico() != null) {
-
-                // Bloquear si tiene órdenes activas
-                if (dao.tecnicoTieneOrdenesActivas(u.getIdTecnico())) {
-                    FacesContext.getCurrentInstance().addMessage(null,
-                            new FacesMessage(FacesMessage.SEVERITY_WARN,
-                                    "No se puede eliminar",
-                                    "El técnico vinculado tiene órdenes pendientes o en proceso. " +
-                                            "Finalícelas antes de eliminar."));
-                    return;
-                }
-
-                // Eliminar reparaciones y órdenes finalizadas
-                dao.eliminarOrdenesYReparacionesFinalizadas(u.getIdTecnico());
-
-                // Eliminar el técnico vinculado
-                tecnicoDAO.eliminar(u.getIdTecnico());
+            // Regla 2: Si tiene órdenes como creador → advertir pero permitir con confirmación
+            if (dao.tieneOrdenesComoCreador(u.getIdUsuario())) {
+                // Se muestra aviso; el ConfirmDialog ya pidió confirmación antes de llegar aquí
+                // Si llegamos acá, el usuario confirmó → proceder
             }
 
-            // Eliminar el usuario
-            dao.eliminar(u.getIdUsuario());
-            cargarLista();
+            // Regla 3: Si es técnico con órdenes activas → NO se puede
+            if (u.getIdTecnico() != null) {
+                if (dao.tieneOrdenesPendientes(u.getIdTecnico())) {
+                    warn("No se puede eliminar: el técnico tiene órdenes en 'Pendiente' o 'En proceso'.");
+                    return;
+                }
+            }
 
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO,
-                            "Eliminado", "Usuario eliminado correctamente."));
+            // Ejecutar eliminación en cascada (orden correcto para Access)
+            dao.eliminarUsuarioYDatosTecnico(u.getIdUsuario(), u.getIdTecnico());
+            cargarLista();
+            info("Usuario" + (u.getIdTecnico() != null ? " y técnico asociado" : "") + " eliminados correctamente.");
 
         } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR,
-                            "Error", e.getMessage()));
+            error("Error al eliminar: " + e.getMessage());
         }
     }
 
-    public List<String> getEstadosCuenta() {
-        return List.of("Activo", "Inactivo");
-    }
-
-    private static void normalizarEstadoCuenta(Usuario x) {
-        if (x.getEstado() == null) return;
-        String e = x.getEstado().trim();
-        if ("activo".equalsIgnoreCase(e) || "1".equals(e)) {
-            x.setEstado("Activo");
-        } else if ("inactivo".equalsIgnoreCase(e) || "0".equals(e)) {
-            x.setEstado("Inactivo");
+    private boolean validar(Usuario u, Integer idActual) throws Exception {
+        if (u.getNombre() == null || u.getNombre().isBlank()) {
+            warn("El nombre es requerido.");
+            return false;
         }
+
+        String correo = (u.getCorreo() != null) ? u.getCorreo().trim().toLowerCase() : "";
+        if (!correo.matches(GMAIL_REGEX)) {
+            warn("Error: El correo '" + correo + "' no tiene un formato válido.");
+            return false;
+        }
+
+        if (dao.existeCorreo(correo, idActual)) {
+            warn("Este correo ya pertenece a otro usuario.");
+            return false;
+        }
+
+        // Validación extra: contraseña obligatoria solo si es nuevo
+        if (idActual == null && (u.getContrasena() == null || u.getContrasena().isBlank())) {
+            warn("La contraseña es obligatoria para nuevos usuarios.");
+            return false;
+        }
+
+        return true;
     }
 
+
+    // Métodos de utilidad que ya tienes en TecnicoBean
+    private void info(String m) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Éxito", m));
+    }
+
+    private void warn(String m) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Aviso", m));
+    }
+
+    private void error(String m) {
+        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", m));
+    }
+
+
+    // Getters, Setters y utilidades de vista
     public List<Usuario> getLista() {
         if (lista == null) cargarLista();
         return lista;
-    }
-
-    public void setLista(List<Usuario> lista) {
-        this.lista = lista;
     }
 
     public Usuario getSeleccionado() {
@@ -253,5 +169,14 @@ public class UsuarioBean implements Serializable {
 
     public void setNuevo(Usuario nuevo) {
         this.nuevo = nuevo;
+    }
+
+    public List<String> getEstadosRegistro() {
+        return List.of("Activo", "Inactivo");
+    }
+
+    public void prepararEditar(Usuario u) {
+        this.seleccionado = u;
+        this.seleccionado.setContrasena("");
     }
 }

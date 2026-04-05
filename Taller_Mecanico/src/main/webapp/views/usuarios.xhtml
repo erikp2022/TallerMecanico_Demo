@@ -50,25 +50,29 @@
                             <p:column headerText="Rol">
                                 <span class="badge bg-secondary">#{u.rol}</span>
                             </p:column>
-
                             <p:column headerText="Estado">
                                 <span class="badge #{u.estado eq 'Activo' ? 'bg-success' : 'bg-secondary'}">#{u.estado}</span>
                             </p:column>
 
-                            <p:column headerText="Acciones" width="200">
-                                <div class="btn-group btn-group-sm">
-                                    <p:commandButton icon="pi pi-pencil" title="Editar"
-                                                     process="@this" update=":formDlgEdit"
+                            <p:column headerText="Acciones" width="120">
+                                <div class="d-flex gap-2">
+                                    <!-- Editar: siempre visible -->
+                                    <p:commandButton icon="pi pi-pencil"
                                                      actionListener="#{usuarioBean.prepararEditar(u)}"
+                                                     update=":formDlgEdit"
                                                      oncomplete="PF('dlgEditUsuario').show()"
-                                                     styleClass="btn btn-outline-primary"/>
-                                    <p:commandButton icon="pi pi-trash" title="Eliminar"
-                                                     process="@this"
+                                                     styleClass="btn btn-sm btn-outline-primary"
+                                                     title="Editar"/>
+
+                                    <!-- Eliminar: solo si el usuario es admin -->
+                                    <p:commandButton icon="pi pi-trash"
                                                      action="#{usuarioBean.eliminar(u)}"
                                                      update=":formTabla :growl"
-                                                     styleClass="btn btn-outline-danger">
+                                                     styleClass="btn btn-sm btn-outline-danger"
+                                                     title="Eliminar"
+                                                     rendered="#{u.rol eq 'admin'}">
                                         <p:confirm header="Confirmar eliminación"
-                                                   message="¿Está seguro de eliminar este usuario?"
+                                                   message="¿Seguro que desea eliminar este usuario administrador?"
                                                    icon="pi pi-exclamation-triangle"/>
                                     </p:commandButton>
                                 </div>
@@ -79,74 +83,57 @@
                 </div>
             </h:form>
 
-            <!-- ConfirmDialog en su PROPIO form -->
+            <!-- ConfirmDialog global -->
             <h:form id="formConfirmUsu">
-                <p:confirmDialog global="true" widgetVar="dlgConfirmUsu"
-                                 styleClass="rounded-3 shadow">
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="fade"
+                                 responsive="true" width="350" styleClass="rounded-3 shadow">
                     <p:commandButton value="Cancelar"
                                      icon="pi pi-times"
-                                     onclick="PF('dlgConfirmUsu').hide(); return false;"
                                      styleClass="btn btn-outline-secondary ui-confirmdialog-no"
                                      type="button"/>
-                    <p:commandButton value="Aceptar"
+                    <p:commandButton value="Eliminar"
                                      icon="pi pi-check"
                                      styleClass="btn btn-danger ui-confirmdialog-yes"
                                      type="button"/>
                 </p:confirmDialog>
             </h:form>
 
-            <!-- Dialog Nuevo Usuario -->
+            <!-- Diálogo: Nuevo usuario -->
             <h:form id="formDlgNuevo">
-                <p:dialog header="Nuevo usuario" widgetVar="dlgNuevoUsuario"
-                          modal="true" resizable="false" draggable="false"
-                          closable="true" closeOnEscape="true"
-                          responsive="true" blockScroll="true"
-                          styleClass="rounded-3 shadow taller-dialog-md">
+                <p:dialog header="Nuevo Usuario Administrador" widgetVar="dlgNuevoUsuario"
+                          modal="true" responsive="true">
+                    <p:messages id="msgsNuevo" closable="true" showDetail="false"/>
 
-                    <p class="small text-muted mb-3">
-                        Las cuentas de técnico se crean automáticamente al registrar un técnico.
-                    </p>
+                    <p:panelGrid columns="2" rendered="#{usuarioBean.nuevo != null}" styleClass="ui-fluid">
+                        <p:outputLabel value="Nombre:" for="nomN"/>
+                        <p:inputText id="nomN" value="#{usuarioBean.nuevo.nombre}" required="true"
+                                     requiredMessage="Nombre requerido"/>
 
-                    <p:panelGrid columns="2"
-                                 rendered="#{usuarioBean.nuevo != null}"
-                                 styleClass="ui-fluid taller-dialog-grid">
-                        <p:outputLabel value="Nombre" styleClass="form-label"/>
-                        <p:inputText value="#{usuarioBean.nuevo.nombre}"
-                                     required="true" styleClass="form-control"/>
-
-                        <p:outputLabel value="Correo" styleClass="form-label"/>
-                        <p:inputText value="#{usuarioBean.nuevo.correo}"
-                                     required="true" styleClass="form-control"
-                                     placeholder="nombre@correo.com">
-                            <f:validateRegex pattern="^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"/>
+                        <p:outputLabel value="Correo:" for="corN"/>
+                        <p:inputText id="corN" value="#{usuarioBean.nuevo.correo}" required="true"
+                                     requiredMessage="Correo requerido">
+                            <f:validateRegex pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"/>
+                            <p:ajax event="blur" update="msgsNuevo"/>
                         </p:inputText>
 
-                        <p:outputLabel value="Contraseña" styleClass="form-label"/>
-                        <p:password value="#{usuarioBean.nuevo.contrasena}"
-                                    required="true" styleClass="form-control"/>
+                        <p:outputLabel value="Contraseña:" for="passN"/>
+                        <p:password id="passN" value="#{usuarioBean.nuevo.contrasena}" required="true"
+                                    requiredMessage="Contraseña requerida"/>
 
-                        <p:outputLabel value="Rol" styleClass="form-label"/>
-                        <h:outputText value="Administrador"
-                                      styleClass="d-block form-control border-0 bg-light rounded px-3 py-2"/>
-
-                        <p:outputLabel value="Estado" styleClass="form-label"/>
-                        <p:selectOneMenu value="#{usuarioBean.nuevo.estado}"
-                                         styleClass="w-100" required="true"
-                                         requiredMessage="Seleccione el estado de la cuenta">
-                            <f:selectItem itemLabel="Activo" itemValue="Activo"/>
-                            <f:selectItem itemLabel="Inactivo" itemValue="Inactivo"/>
+                        <p:outputLabel value="Estado:"/>
+                        <p:selectOneMenu value="#{usuarioBean.nuevo.estado}">
+                            <f:selectItems value="#{usuarioBean.estadosRegistro}"/>
                         </p:selectOneMenu>
                     </p:panelGrid>
 
-                    <!-- ✅ CORREGIDO: referencias correctas a usuarioBean -->
                     <f:facet name="footer">
-                        <div class="d-flex justify-content-end gap-2 flex-wrap w-100">
-                            <p:commandButton type="button" value="Cancelar" icon="pi pi-times"
-                                             onclick="PF('dlgNuevoUsuario').hide(); return false;"
-                                             styleClass="btn btn-outline-secondary"/>
-                            <p:commandButton value="Guardar" icon="pi pi-check"
+                        <div class="d-flex justify-content-end gap-2">
+                            <p:commandButton value="Cancelar" type="button"
+                                             onclick="PF('dlgNuevoUsuario').hide()"
+                                             styleClass="btn btn-secondary"/>
+                            <p:commandButton value="Guardar"
                                              action="#{usuarioBean.guardar}"
-                                             update=":formTabla :growl formDlgNuevo"
+                                             update="msgsNuevo :formTabla :growl"
                                              oncomplete="if(!args.validationFailed) PF('dlgNuevoUsuario').hide()"
                                              styleClass="btn btn-primary"/>
                         </div>
@@ -154,61 +141,42 @@
                 </p:dialog>
             </h:form>
 
-            <!-- Dialog Editar Usuario -->
+            <!-- Diálogo: Editar usuario -->
             <h:form id="formDlgEdit">
-                <p:dialog header="Editar usuario" widgetVar="dlgEditUsuario"
-                          modal="true" resizable="false" draggable="false"
-                          closable="true" closeOnEscape="true"
-                          responsive="true" blockScroll="true"
-                          styleClass="rounded-3 shadow taller-dialog-md">
+                <p:dialog header="Modificar Usuario" widgetVar="dlgEditUsuario"
+                          modal="true" responsive="true">
+                    <p:messages id="msgsEdit" closable="true" showDetail="false"/>
 
-                    <p:outputPanel id="panelEditUsuario"
-                                   rendered="#{usuarioBean.seleccionado != null}">
-                        <p:panelGrid columns="2" styleClass="ui-fluid taller-dialog-grid">
-                            <p:outputLabel value="Nombre" styleClass="form-label"/>
-                            <p:inputText value="#{usuarioBean.seleccionado.nombre}"
-                                         required="true" styleClass="form-control"/>
+                    <p:panelGrid columns="2" rendered="#{usuarioBean.seleccionado != null}" styleClass="ui-fluid">
+                        <p:outputLabel value="Nombre:" for="nomE"/>
+                        <p:inputText id="nomE" value="#{usuarioBean.seleccionado.nombre}" required="true"
+                                     requiredMessage="Nombre requerido"/>
 
-                            <p:outputLabel value="Correo" styleClass="form-label"/>
-                            <p:inputText value="#{usuarioBean.seleccionado.correo}"
-                                         required="true" styleClass="form-control"
-                                         placeholder="nombre@correo.com">
-                                <f:validateRegex pattern="^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"/>
-                            </p:inputText>
+                        <p:outputLabel value="Correo:" for="corE"/>
+                        <p:inputText id="corE" value="#{usuarioBean.seleccionado.correo}" required="true"
+                                     requiredMessage="Correo requerido">
+                            <f:validateRegex pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"/>
+                            <p:ajax event="blur" update="msgsEdit"/>
+                        </p:inputText>
 
-                            <p:outputLabel value="Contraseña" styleClass="form-label"/>
-                            <p:password value="#{usuarioBean.seleccionado.contrasena}"
-                                        redisplay="true" required="false"
-                                        styleClass="form-control"
-                                        placeholder="Deje vacío para no cambiar"/>
+                        <p:outputLabel value="Nueva Contraseña:" for="passE"/>
+                        <p:password id="passE" value="#{usuarioBean.seleccionado.contrasena}"
+                                    placeholder="Dejar vacío para mantener actual"/>
 
-                            <!-- <p:outputLabel value="Rol" styleClass="form-label"/>
-                            <p:selectOneMenu value="#{usuarioBean.seleccionado.rol}" styleClass="w-100">
-                                <p:ajax event="change" process="@this"
-                                        update="formDlgEdit:panelEditUsuario"/>
-                                <f:selectItem itemLabel="admin" itemValue="admin"/>
-                                <f:selectItem itemLabel="tecnico" itemValue="tecnico"/>
-                            </p:selectOneMenu>-->
-
-
-                            <p:outputLabel value="Estado" styleClass="form-label"/>
-                            <p:selectOneMenu value="#{usuarioBean.seleccionado.estado}"
-                                             styleClass="w-100" required="true"
-                                             requiredMessage="Seleccione el estado">
-                                <f:selectItem itemLabel="Activo" itemValue="Activo"/>
-                                <f:selectItem itemLabel="Inactivo" itemValue="Inactivo"/>
-                            </p:selectOneMenu>
-                        </p:panelGrid>
-                    </p:outputPanel>
+                        <p:outputLabel value="Estado:"/>
+                        <p:selectOneMenu value="#{usuarioBean.seleccionado.estado}">
+                            <f:selectItems value="#{usuarioBean.estadosRegistro}"/>
+                        </p:selectOneMenu>
+                    </p:panelGrid>
 
                     <f:facet name="footer">
-                        <div class="d-flex justify-content-end gap-2 flex-wrap w-100">
-                            <p:commandButton type="button" value="Cancelar" icon="pi pi-times"
-                                             onclick="PF('dlgEditUsuario').hide(); return false;"
-                                             styleClass="btn btn-outline-secondary"/>
-                            <p:commandButton value="Actualizar" icon="pi pi-check"
+                        <div class="d-flex justify-content-end gap-2">
+                            <p:commandButton value="Cancelar" type="button"
+                                             onclick="PF('dlgEditUsuario').hide()"
+                                             styleClass="btn btn-secondary"/>
+                            <p:commandButton value="Actualizar Datos"
                                              action="#{usuarioBean.actualizar}"
-                                             update=":formTabla :growl :formDlgEdit"
+                                             update="msgsEdit :formTabla :growl"
                                              oncomplete="if(!args.validationFailed) PF('dlgEditUsuario').hide()"
                                              styleClass="btn btn-primary"/>
                         </div>

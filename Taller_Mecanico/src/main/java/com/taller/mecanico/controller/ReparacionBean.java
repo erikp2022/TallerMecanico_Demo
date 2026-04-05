@@ -40,6 +40,13 @@ public class ReparacionBean implements Serializable {
     private Integer idRepuestoSeleccionado;
     private Integer cantidadRepuesto;
 
+    // Agrega este campo y sus getter/setter
+    private String nombreCliente;
+
+    public String getNombreCliente() { return nombreCliente; }
+    public void setNombreCliente(String nombreCliente) { this.nombreCliente = nombreCliente; }
+
+
     public void cargarLista() {
         try {
             repuestosDisponibles = repuestoDAO.listarTodos(); // Cargar repuestos siempre
