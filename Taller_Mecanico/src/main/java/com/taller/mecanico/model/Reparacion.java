@@ -10,13 +10,9 @@ public class Reparacion implements Serializable {
     private String descripcion;
     private String estado;
     private Integer idOrden;
-    // Agrega este campo y sus getter/setter
     private String nombreCliente;
 
-    public String getNombreCliente() { return nombreCliente; }
-    public void setNombreCliente(String nombreCliente) { this.nombreCliente = nombreCliente; }
-
-
+    // GETTERS Y SETTERS
 
     public Integer getIdReparacion() {
         return idReparacion;
@@ -48,5 +44,13 @@ public class Reparacion implements Serializable {
 
     public void setIdOrden(Integer idOrden) {
         this.idOrden = idOrden;
+    }
+
+    public String getNombreCliente() {
+        return nombreCliente;
+    }
+
+    public void setNombreCliente(String nombreCliente) {
+        this.nombreCliente = nombreCliente;
     }
 }

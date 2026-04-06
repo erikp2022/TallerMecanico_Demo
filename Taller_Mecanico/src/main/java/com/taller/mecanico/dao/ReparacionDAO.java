@@ -18,8 +18,13 @@ public class ReparacionDAO {
         r.setDescripcion(rs.getString("descripcion"));
         r.setEstado(rs.getString("estado"));
         r.setIdOrden(rs.getInt("id_orden"));
+
+        
         // Nombre del cliente — puede ser null si el JOIN no lo trae
-        try { r.setNombreCliente(rs.getString("nombre_cliente")); } catch (SQLException ignored) {}
+        try {
+            r.setNombreCliente(rs.getString("nombre_cliente"));
+        } catch (SQLException ignored) {
+        }
         return r;
     }
 
@@ -37,19 +42,28 @@ public class ReparacionDAO {
         try (Connection c = Conexion.obtenerConexion();
              PreparedStatement ps = c.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) { lista.add(mapear(rs)); }
+            while (rs.next()) {
+                lista.add(mapear(rs));
+            }
         }
         return lista;
     }
 
     public List<Reparacion> listarPorOrden(int idOrden) throws SQLException {
         List<Reparacion> lista = new ArrayList<>();
-        String sql = SQL_CON_CLIENTE + " WHERE r.id_orden = ? ORDER BY r.id_reparacion";
-        try (Connection c = Conexion.obtenerConexion();
-             PreparedStatement ps = c.prepareStatement(sql)) {
+        String sql = "SELECT r.id_reparacion, r.descripcion, r.estado, r.id_orden, c.nombre AS nombre_cliente " +
+                "FROM reparaciones r " +
+                "INNER JOIN ordenes_trabajo o ON r.id_orden = o.id_orden " +
+                "INNER JOIN vehiculos v ON o.id_vehiculo = v.id_vehiculo " +
+                "INNER JOIN clientes c ON v.id_cliente = c.id_cliente " +
+                "WHERE r.id_orden = ? ORDER BY r.id_reparacion DESC";
+        try (Connection conn = Conexion.obtenerConexion();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idOrden);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) { lista.add(mapear(rs)); }
+                while (rs.next()) {
+                    lista.add(mapear(rs));
+                }
             }
         }
         return lista;
@@ -62,7 +76,9 @@ public class ReparacionDAO {
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, idTecnico);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) { lista.add(mapear(rs)); }
+                while (rs.next()) {
+                    lista.add(mapear(rs));
+                }
             }
         }
         return lista;
@@ -81,7 +97,9 @@ public class ReparacionDAO {
         return lista;
     }*/
 
-    /** Reparaciones de órdenes asignadas a un técnico (filtrado por id_tecnico de la orden). */
+    /**
+     * Reparaciones de órdenes asignadas a un técnico (filtrado por id_tecnico de la orden).
+     */
    /* public List<Reparacion> listarPorTecnico(int idTecnico) throws SQLException {
         List<Reparacion> lista = new ArrayList<>();
         String sql = "SELECT r.id_reparacion, r.descripcion, r.estado, r.id_orden FROM reparaciones r "
@@ -97,7 +115,6 @@ public class ReparacionDAO {
         }
         return lista;
     }*/
-
     public Reparacion buscarPorId(int id) throws SQLException {
         String sql = "SELECT id_reparacion, descripcion, estado, id_orden FROM reparaciones WHERE id_reparacion = ?";
         try (Connection c = Conexion.obtenerConexion();

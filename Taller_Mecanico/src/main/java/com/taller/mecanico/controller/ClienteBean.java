@@ -72,13 +72,27 @@ public class ClienteBean implements Serializable {
 
     public void eliminar(Cliente c) {
         try {
+            // Verificar si tiene vehículos registrados
+            if (dao.tieneVehiculos(c.getIdCliente())) {
+                FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage(FacesMessage.SEVERITY_WARN,
+                                "No se puede eliminar",
+                                "Este cliente tiene vehículos registrados. " +
+                                        "Para eliminarlo debe eliminar primero sus vehículos, " +
+                                        "luego las órdenes de trabajo y reparaciones asociadas."));
+                return;
+            }
+
             dao.eliminar(c.getIdCliente());
             cargarLista();
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Eliminado", "Cliente eliminado."));
+                    new FacesMessage(FacesMessage.SEVERITY_INFO,
+                            "Eliminado", "Cliente eliminado correctamente."));
+
         } catch (Exception e) {
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                            "Error", e.getMessage()));
         }
     }
 

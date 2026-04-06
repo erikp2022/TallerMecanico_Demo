@@ -63,9 +63,9 @@ public class OrdenTrabajoDAO {
     }
 
     /**
-     * @param placa      si no es null, filtra por placa (LIKE)
-     * @param estado     si no es null, filtra por estado exacto
-     * @param idTecnico  si no es null, filtra por técnico
+     * @param placa     si no es null, filtra por placa (LIKE)
+     * @param estado    si no es null, filtra por estado exacto
+     * @param idTecnico si no es null, filtra por técnico
      */
     public List<OrdenTrabajo> listarConDetalleFiltrado(String placa, String estado, Integer idTecnico) throws SQLException {
         List<OrdenTrabajo> lista = new ArrayList<>();
@@ -117,7 +117,9 @@ public class OrdenTrabajoDAO {
         return null;
     }
 
-    /** Comprueba que la orden exista y esté asignada al técnico indicado. */
+    /**
+     * Comprueba que la orden exista y esté asignada al técnico indicado.
+     */
     public boolean ordenAsignadaATecnico(int idOrden, int idTecnico) throws SQLException {
         OrdenTrabajo o = buscarPorId(idOrden);
         return o != null && o.getIdTecnico() != null && o.getIdTecnico() == idTecnico;
@@ -149,7 +151,9 @@ public class OrdenTrabajoDAO {
         return 0;
     }
 
-    /** Estado -> cantidad (orden de inserción estable) */
+    /**
+     * Estado -> cantidad (orden de inserción estable)
+     */
     public Map<String, Long> contarPorEstado() throws SQLException {
         Map<String, Long> map = new LinkedHashMap<>();
         String sql = "SELECT estado, COUNT(*) AS n FROM ordenes_trabajo GROUP BY estado";
@@ -245,6 +249,40 @@ public class OrdenTrabajoDAO {
 
     public void eliminar(int idOrden) throws SQLException {
         String sql = "DELETE FROM ordenes_trabajo WHERE id_orden = ?";
+        try (Connection c = Conexion.obtenerConexion();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, idOrden);
+            ps.executeUpdate();
+        }
+    }
+
+
+    // Verifica si la orden tiene reparaciones
+    public boolean tieneReparaciones(int idOrden) throws SQLException {
+        String sql = "SELECT COUNT(*) AS n FROM reparaciones WHERE id_orden = ?";
+        try (Connection c = Conexion.obtenerConexion();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, idOrden);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt("n") > 0;
+            }
+        }
+        return false;
+    }
+
+    // Elimina reparaciones de la orden
+    public void eliminarReparacionesDeOrden(int idOrden) throws SQLException {
+        String sql = "DELETE FROM reparaciones WHERE id_orden = ?";
+        try (Connection c = Conexion.obtenerConexion();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, idOrden);
+            ps.executeUpdate();
+        }
+    }
+
+    // Elimina orden_repuestos de la orden
+    public void eliminarOrdenRepuestos(int idOrden) throws SQLException {
+        String sql = "DELETE FROM orden_repuestos WHERE id_orden = ?";
         try (Connection c = Conexion.obtenerConexion();
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, idOrden);

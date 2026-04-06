@@ -1,21 +1,14 @@
 package com.taller.mecanico.controller;
 
-import com.taller.mecanico.dao.OrdenRepuestoDAO;
-import com.taller.mecanico.dao.OrdenTrabajoDAO;
-import com.taller.mecanico.dao.RepuestoDAO;
-import com.taller.mecanico.dao.TecnicoDAO;
-import com.taller.mecanico.dao.VehiculoDAO;
-import com.taller.mecanico.model.OrdenRepuesto;
-import com.taller.mecanico.model.OrdenTrabajo;
-import com.taller.mecanico.model.Repuesto;
-import com.taller.mecanico.model.Tecnico;
-import com.taller.mecanico.model.Vehiculo;
+import com.taller.mecanico.dao.*;
+import com.taller.mecanico.model.*;
 import com.taller.mecanico.util.EstadosOrden;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.context.FacesContext;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import org.primefaces.PrimeFaces;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -48,6 +41,12 @@ public class OrdenBean implements Serializable {
     private List<OrdenRepuesto> detallesRepuesto;
     private Integer idRepuestoLinea;
     private Integer cantidadLinea;
+
+    private final ReparacionDAO reparacionDAO = new ReparacionDAO();
+    private List<Reparacion> reparacionesOrden;
+    private Integer idRepuestoReparacion;
+    private Integer cantidadReparacion;
+    private String descripcionReparacion;
 
     public void cargarLista() {
         try {
@@ -137,12 +136,63 @@ public class OrdenBean implements Serializable {
         }
     }
 
+    // Intenta eliminar — valida estado y si tiene reparaciones
     public void eliminar(OrdenTrabajo o) {
         try {
+            // Solo se pueden eliminar órdenes Finalizadas
+            if (!"Finalizado".equalsIgnoreCase(o.getEstado())) {
+                FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage(FacesMessage.SEVERITY_WARN,
+                                "No se puede eliminar",
+                                "Solo se pueden eliminar órdenes con estado Finalizado."));
+                return;
+            }
+
+            // Guardar la orden seleccionada para el diálogo secundario
+            seleccionado = o;
+
+            // ¿Tiene reparaciones?
+            if (ordenDAO.tieneReparaciones(o.getIdOrden())) {
+                // Mostrar diálogo secundario desde el cliente
+                FacesContext.getCurrentInstance()
+                        .getPartialViewContext()
+                        .getRenderIds()
+                        .add("formDlgConfirmRep:panelConfirmRep");
+                // Enviamos señal al cliente para abrir el diálogo
+                PrimeFaces.current().executeScript("PF('dlgConfirmRep').show()");
+                return;
+            }
+
+            // Sin reparaciones → elimina directo
+            ordenDAO.eliminarOrdenRepuestos(o.getIdOrden());
             ordenDAO.eliminar(o.getIdOrden());
             cargarLista();
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, "Eliminado", "Orden eliminada."));
+                    new FacesMessage(FacesMessage.SEVERITY_INFO,
+                            "Eliminado", "Orden eliminada correctamente."));
+
+        } catch (Exception e) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
+        }
+    }
+
+    // Elimina reparaciones + orden (llamado desde el diálogo secundario)
+    public void eliminarConReparaciones() {
+        try {
+            if (seleccionado == null) return;
+
+            ordenDAO.eliminarReparacionesDeOrden(seleccionado.getIdOrden());
+            ordenDAO.eliminarOrdenRepuestos(seleccionado.getIdOrden());
+            ordenDAO.eliminar(seleccionado.getIdOrden());
+            seleccionado = null;
+            cargarLista();
+
+            PrimeFaces.current().executeScript("PF('dlgConfirmRep').hide()");
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_INFO,
+                            "Eliminado", "Orden y reparaciones eliminadas correctamente."));
+
         } catch (Exception e) {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
@@ -187,6 +237,87 @@ public class OrdenBean implements Serializable {
             if (seleccionado != null) {
                 detallesRepuesto = ordenRepuestoDAO.listarPorOrden(seleccionado.getIdOrden());
             }
+        } catch (Exception e) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
+        }
+    }
+
+    // Carga las reparaciones de la orden seleccionada
+    public void cargarReparacionesOrden(OrdenTrabajo o) {
+        seleccionado = o;
+        try {
+            reparacionesOrden = reparacionDAO.listarPorOrden(o.getIdOrden());
+            idRepuestoReparacion = null;
+            cantidadReparacion = 1;
+            descripcionReparacion = null;
+        } catch (Exception e) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
+        }
+    }
+
+    // Agrega una reparación a la orden, descontando stock si hay repuesto
+    public void agregarReparacion() {
+        try {
+            if (seleccionado == null) return;
+
+            if (descripcionReparacion == null || descripcionReparacion.isBlank()) {
+                FacesContext.getCurrentInstance().addMessage(null,
+                        new FacesMessage(FacesMessage.SEVERITY_WARN,
+                                "Validación", "La descripción es obligatoria."));
+                return;
+            }
+
+            Reparacion r = new Reparacion();
+            r.setIdOrden(seleccionado.getIdOrden());
+            r.setEstado("Pendiente");
+
+            // Si se seleccionó un repuesto, descontar stock y agregar a descripción
+            if (idRepuestoReparacion != null && cantidadReparacion != null && cantidadReparacion > 0) {
+                int stock = repuestoDAO.obtenerStock(idRepuestoReparacion);
+                if (stock < cantidadReparacion) {
+                    FacesContext.getCurrentInstance().addMessage(null,
+                            new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                                    "Stock insuficiente", "Solo hay " + stock + " unidades disponibles."));
+                    return;
+                }
+                repuestoDAO.ajustarStock(idRepuestoReparacion, -cantidadReparacion);
+                Repuesto rep = repuestoDAO.buscarPorId(idRepuestoReparacion);
+                r.setDescripcion(descripcionReparacion.trim() +
+                        " (Repuesto: " + rep.getNombre() + " x" + cantidadReparacion + ")");
+            } else {
+                r.setDescripcion(descripcionReparacion.trim());
+            }
+
+            reparacionDAO.insertar(r);
+            reparacionesOrden = reparacionDAO.listarPorOrden(seleccionado.getIdOrden());
+
+            // Limpiar campos
+            idRepuestoReparacion = null;
+            cantidadReparacion = 1;
+            descripcionReparacion = null;
+
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_INFO,
+                            "Guardado", "Reparación registrada correctamente."));
+
+        } catch (Exception e) {
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
+        }
+    }
+
+    // Elimina una reparación de la orden
+    public void eliminarReparacion(Reparacion r) {
+        try {
+            reparacionDAO.eliminar(r.getIdReparacion());
+            if (seleccionado != null) {
+                reparacionesOrden = reparacionDAO.listarPorOrden(seleccionado.getIdOrden());
+            }
+            FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_INFO,
+                            "Eliminado", "Reparación eliminada."));
         } catch (Exception e) {
             FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error", e.getMessage()));
@@ -303,7 +434,39 @@ public class OrdenBean implements Serializable {
         this.cantidadLinea = cantidadLinea;
     }
 
-    /** Clase CSS para badge de estado en tablas. */
+
+    public List<Reparacion> getReparacionesOrden() {
+        return reparacionesOrden;
+    }
+
+    public Integer getIdRepuestoReparacion() {
+        return idRepuestoReparacion;
+    }
+
+    public void setIdRepuestoReparacion(Integer v) {
+        this.idRepuestoReparacion = v;
+    }
+
+    public Integer getCantidadReparacion() {
+        return cantidadReparacion;
+    }
+
+    public void setCantidadReparacion(Integer v) {
+        this.cantidadReparacion = v;
+    }
+
+    public String getDescripcionReparacion() {
+        return descripcionReparacion;
+    }
+
+    public void setDescripcionReparacion(String v) {
+        this.descripcionReparacion = v;
+    }
+
+
+    /**
+     * Clase CSS para badge de estado en tablas.
+     */
     public String claseBadgeEstado(String estado) {
         if (estado == null) {
             return "badge-estado badge-pendiente";

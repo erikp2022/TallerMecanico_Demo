@@ -79,4 +79,19 @@ public class ClienteDAO {
             ps.executeUpdate();
         }
     }
+
+    // Verifica si el cliente tiene vehículos registrados
+    public boolean tieneVehiculos(int idCliente) throws SQLException {
+        String sql = "SELECT COUNT(*) AS n FROM vehiculos WHERE id_cliente = ?";
+        try (Connection c = Conexion.obtenerConexion();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, idCliente);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt("n") > 0;
+            }
+        }
+        return false;
+    }
+
+
 }

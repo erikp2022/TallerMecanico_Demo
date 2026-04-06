@@ -15,7 +15,10 @@ public class OrdenTrabajo implements Serializable {
     private Integer idVehiculo;
     private Integer idTecnico;
     private Integer idUsuario;
-    /** Campos de JOIN / UI */
+
+    /**
+     * Campos de JOIN / UI
+     */
     private String placaVehiculo;
     private String nombreTecnico;
     private String nombreCliente;
