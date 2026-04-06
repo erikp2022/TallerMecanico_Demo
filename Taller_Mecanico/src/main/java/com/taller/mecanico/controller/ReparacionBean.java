@@ -43,8 +43,13 @@ public class ReparacionBean implements Serializable {
     // Agrega este campo y sus getter/setter
     private String nombreCliente;
 
-    public String getNombreCliente() { return nombreCliente; }
-    public void setNombreCliente(String nombreCliente) { this.nombreCliente = nombreCliente; }
+    public String getNombreCliente() {
+        return nombreCliente;
+    }
+
+    public void setNombreCliente(String nombreCliente) {
+        this.nombreCliente = nombreCliente;
+    }
 
 
     public void cargarLista() {
@@ -83,7 +88,7 @@ public class ReparacionBean implements Serializable {
                 return;
             }
 
-            // Lógica para descontar stock si se seleccionó un repuesto
+            // Aqui quitamos el stok
             if (idRepuestoSeleccionado != null && cantidadRepuesto != null && cantidadRepuesto > 0) {
                 int stockActual = repuestoDAO.obtenerStock(idRepuestoSeleccionado);
                 if (stockActual < cantidadRepuesto) {
@@ -91,7 +96,7 @@ public class ReparacionBean implements Serializable {
                             new FacesMessage(FacesMessage.SEVERITY_ERROR, "Stock Insuficiente", "Solo hay " + stockActual + " unidades."));
                     return;
                 }
-               //descontamos el estok
+                //descontamos el estok
                 repuestoDAO.ajustarStock(idRepuestoSeleccionado, -cantidadRepuesto);
 
                 // aqui este se agrega una descripcion auto
@@ -122,19 +127,62 @@ public class ReparacionBean implements Serializable {
     }
 
     // Getters y Setters para las vistas
-    public List<Repuesto> getRepuestosDisponibles() { return repuestosDisponibles; }
-    public Integer getIdRepuestoSeleccionado() { return idRepuestoSeleccionado; }
-    public void setIdRepuestoSeleccionado(Integer idRepuestoSeleccionado) { this.idRepuestoSeleccionado = idRepuestoSeleccionado; }
-    public Integer getCantidadRepuesto() { return cantidadRepuesto; }
-    public void setCantidadRepuesto(Integer cantidadRepuesto) { this.cantidadRepuesto = cantidadRepuesto; }
-    public List<Reparacion> getLista() { if (lista == null) cargarLista(); return lista; }
-    public List<String> getEstados() { return Arrays.asList(EstadosOrden.PENDIENTE, EstadosOrden.EN_PROCESO, EstadosOrden.FINALIZADO); }
-    public List<OrdenTrabajo> getOrdenesDisponibles() { if (ordenesDisponibles == null) cargarOrdenesParaSelect(); return ordenesDisponibles; }
-    public Reparacion getSeleccionado() { return seleccionado; }
-    public void setSeleccionado(Reparacion seleccionado) { this.seleccionado = seleccionado; }
-    public Reparacion getNuevo() { return nuevo; }
-    public void setNuevo(Reparacion nuevo) { this.nuevo = nuevo; }
-    public void prepararEditar(Reparacion r) { seleccionado = r; cargarOrdenesParaSelect(); }
+    public List<Repuesto> getRepuestosDisponibles() {
+        return repuestosDisponibles;
+    }
+
+    public Integer getIdRepuestoSeleccionado() {
+        return idRepuestoSeleccionado;
+    }
+
+    public void setIdRepuestoSeleccionado(Integer idRepuestoSeleccionado) {
+        this.idRepuestoSeleccionado = idRepuestoSeleccionado;
+    }
+
+    public Integer getCantidadRepuesto() {
+        return cantidadRepuesto;
+    }
+
+    public void setCantidadRepuesto(Integer cantidadRepuesto) {
+        this.cantidadRepuesto = cantidadRepuesto;
+    }
+
+    public List<Reparacion> getLista() {
+        if (lista == null) cargarLista();
+        return lista;
+    }
+
+    public List<String> getEstados() {
+        return Arrays.asList(EstadosOrden.PENDIENTE, EstadosOrden.EN_PROCESO, EstadosOrden.FINALIZADO);
+    }
+
+    public List<OrdenTrabajo> getOrdenesDisponibles() {
+        if (ordenesDisponibles == null) cargarOrdenesParaSelect();
+        return ordenesDisponibles;
+    }
+
+    public Reparacion getSeleccionado() {
+        return seleccionado;
+    }
+
+    public void setSeleccionado(Reparacion seleccionado) {
+        this.seleccionado = seleccionado;
+    }
+
+    public Reparacion getNuevo() {
+        return nuevo;
+    }
+
+    public void setNuevo(Reparacion nuevo) {
+        this.nuevo = nuevo;
+    }
+
+    public void prepararEditar(Reparacion r) {
+        seleccionado = r;
+        cargarOrdenesParaSelect();
+    }
+
     public void actualizar() { /* lógica similar al guardar */ }
+
     public void eliminar(Reparacion r) { /* lógica de eliminar */ }
 }
